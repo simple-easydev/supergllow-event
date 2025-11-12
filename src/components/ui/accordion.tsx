@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CheckIcon } from '@/components/icons';
 
 interface AccordionContextValue {
   openItems: string[];
@@ -159,9 +160,7 @@ export const AccordionTrigger: React.FC<AccordionTriggerProps> = ({
                 marginRight: '8px',
               }}
             >
-              <svg width="14" height="10" viewBox="0 0 14 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M1 5L5 9L13 1" stroke="#26275A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <CheckIcon />
             </div>
           )}
           <ChevronDown

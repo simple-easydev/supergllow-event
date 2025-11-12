@@ -5,6 +5,7 @@ import { supabase, Party } from '../lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { CheckmarkIcon } from '@/components/icons';
 
 export const PublicInviteView: React.FC = () => {
   const { inviteCode } = useParams<{ inviteCode: string }>();
@@ -157,19 +158,7 @@ export const PublicInviteView: React.FC = () => {
       <div className="bg-gradient-to-b from-emerald-300 via-teal-400 to-indigo-900 min-h-screen flex items-center justify-center p-6">
         <div className="bg-white rounded-3xl p-8 text-center max-w-md">
           <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg
-              className="w-8 h-8 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
+            <CheckmarkIcon className="w-8 h-8 text-white" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             RSVP Confirmed!

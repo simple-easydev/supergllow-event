@@ -1,5 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Party, supabase } from '../lib/supabase';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { Party } from '../lib/supabase';
+
+// Re-export Party type for use in other components
+export type { Party } from '../lib/supabase';
 
 interface PartyContextType {
   party: Party | null;
@@ -21,13 +24,13 @@ export const PartyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setParty((prev) => (prev ? { ...prev, ...updates } : null));
   };
 
-  const savePartyDraft = () => {
+  const savePartyDraft = useCallback(() => {
     if (party) {
       localStorage.setItem(DRAFT_KEY, JSON.stringify(party));
     }
-  };
+  }, [party]);
 
-  const loadPartyDraft = () => {
+  const loadPartyDraft = useCallback(() => {
     const draft = localStorage.getItem(DRAFT_KEY);
     if (draft) {
       try {
@@ -37,11 +40,11 @@ export const PartyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         console.error('Failed to parse draft:', error);
       }
     }
-  };
+  }, []);
 
-  const clearPartyDraft = () => {
+  const clearPartyDraft = useCallback(() => {
     localStorage.removeItem(DRAFT_KEY);
-  };
+  }, []);
 
   // Auto-save draft every 2 seconds
   useEffect(() => {
@@ -52,7 +55,7 @@ export const PartyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
       return () => clearTimeout(timer);
     }
-  }, [party]);
+  }, [party, savePartyDraft]);
 
   return (
     <PartyContext.Provider

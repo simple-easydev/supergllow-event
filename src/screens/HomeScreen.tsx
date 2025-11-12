@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { EditIcon, ArrowRightIcon } from '@/components/icons';
 
 const SLIDER_IMAGES = [
   {
@@ -238,17 +239,7 @@ export const HomeScreen: React.FC = () => {
                 flexGrow: 0
               }}
             >
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5.13335 1.86641H1.86668C1.61915 1.86641 1.38175 1.96475 1.20672 2.13978C1.03168 2.31482 0.93335 2.55221 0.93335 2.79975V9.33308C0.93335 9.58062 1.03168 9.81801 1.20672 9.99305C1.38175 10.1681 1.61915 10.2664 1.86668 10.2664H8.40002C8.64755 10.2664 8.88495 10.1681 9.05998 9.99305C9.23502 9.81801 9.33335 9.58062 9.33335 9.33308V6.06641M8.63335 1.16641C8.819 0.980763 9.0708 0.876465 9.33335 0.876465C9.5959 0.876465 9.8477 0.980763 10.0333 1.16641C10.219 1.35207 10.3233 1.60386 10.3233 1.86641C10.3233 2.12897 10.219 2.38076 10.0333 2.56641L5.60002 6.99975L3.73335 7.46641L4.20002 5.59975L8.63335 1.16641Z" stroke="white" strokeWidth="1.05" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M5.13335 1.86641H1.86668C1.61915 1.86641 1.38175 1.96475 1.20672 2.13978C1.03168 2.31482 0.93335 2.55221 0.93335 2.79975V9.33308C0.93335 9.58062 1.03168 9.81801 1.20672 9.99305C1.38175 10.1681 1.61915 10.2664 1.86668 10.2664H8.40002C8.64755 10.2664 8.88495 10.1681 9.05998 9.99305C9.23502 9.81801 9.33335 9.58062 9.33335 9.33308V6.06641M8.63335 1.16641C8.819 0.980763 9.0708 0.876465 9.33335 0.876465C9.5959 0.876465 9.8477 0.980763 10.0333 1.16641C10.219 1.35207 10.3233 1.60386 10.3233 1.86641C10.3233 2.12897 10.219 2.38076 10.0333 2.56641L5.60002 6.99975L3.73335 7.46641L4.20002 5.59975L8.63335 1.16641Z" stroke="url(#paint0_linear_2207_5376)" strokeWidth="1.05" strokeLinecap="round" strokeLinejoin="round"/>
-                <defs>
-                  <linearGradient id="paint0_linear_2207_5376" x1="5.62832" y1="0.876465" x2="5.62832" y2="10.2664" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#F0FDF4"/>
-                    <stop offset="0.5" stopColor="white"/>
-                    <stop offset="1" stopColor="#EFF6FF"/>
-                  </linearGradient>
-                </defs>
-              </svg>
+              <EditIcon />
             </div>
           </div>
         </div>
@@ -280,9 +271,7 @@ export const HomeScreen: React.FC = () => {
           }}
         >
           Create your party Invite
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3.33334 8.00016H12.6667M12.6667 8.00016L8.00001 3.3335M12.6667 8.00016L8.00001 12.6668" stroke="#26275A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+          <ArrowRightIcon />
         </button>
       </div>
 
