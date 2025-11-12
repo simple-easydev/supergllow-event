@@ -1,6 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { EditIcon, ArrowRightIcon } from '@/components/icons';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import PreSignupScreen from './PreSignupScreen';
 
 const SLIDER_IMAGES = [
   {
@@ -23,6 +25,7 @@ const SLIDER_IMAGES = [
 export const HomeScreen: React.FC = () => {
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [isPreSignupOpen, setIsPreSignupOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
@@ -232,12 +235,17 @@ export const HomeScreen: React.FC = () => {
               john@example.com
             </span>
             <div
+              onClick={() => setIsPreSignupOpen(true)}
+              role="button"
+              tabIndex={0}
               style={{
                 width: '11.2px',
                 height: '11.2px',
                 borderRadius: '14px',
-                flexGrow: 0
+                flexGrow: 0,
+                cursor: 'pointer'
               }}
+              aria-label="Open signup dialog"
             >
               <EditIcon />
             </div>
@@ -317,6 +325,12 @@ export const HomeScreen: React.FC = () => {
           Learn more about Superglow
         </button>
       </div>
+      {/* Pre-signup Dialog */}
+      <Dialog open={isPreSignupOpen} onOpenChange={setIsPreSignupOpen}>
+        <DialogContent className="sm:max-w-[520px]">
+          <PreSignupScreen onClose={() => setIsPreSignupOpen(false)} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

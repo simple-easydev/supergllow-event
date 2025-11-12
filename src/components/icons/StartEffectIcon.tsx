@@ -1,0 +1,10 @@
+import React from 'react';
+
+export const StartEffectIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path d="M0 16C0 7.16344 7.16344 0 16 0C24.8366 0 32 7.16344 32 16C32 24.8366 24.8366 32 16 32C7.16344 32 0 24.8366 0 16Z" fill="#66FFB8"/>
+      <path d="M7 25.26H25V7.26H7V25.26Z" fill="#26275A"/>
+    </svg>
+  );
+};

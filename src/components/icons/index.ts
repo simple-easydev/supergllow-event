@@ -10,3 +10,7 @@ export { CheckIcon } from './CheckIcon';
 export { ChevronDownIcon } from './ChevronDownIcon';
 export { PlusIcon } from './PlusIcon';
 export { XIcon } from './XIcon';
+export { LogoIcon } from './LogoIcon';
+export { StartEffectIcon } from './StartEffectIcon';
+export { GraphIcon } from './GraphIcon';
+export { GiftboxIcon } from './GiftboxIcon';

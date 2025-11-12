@@ -6,6 +6,7 @@ import { HomeScreen } from './screens/HomeScreen';
 import { PartyFormScreen } from './screens/PartyFormScreen';
 import { GuestListScreen } from './screens/GuestListScreen';
 import { PublicInviteView } from './screens/PublicInviteView';
+import { AccountScreen } from './screens/AccountScreen';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
             <Routes>
               <Route path="/" element={<HomeScreen />} />
               <Route path="/create" element={<PartyFormScreen />} />
+              <Route path="/account" element={<AccountScreen />} />
               <Route path="/guests" element={<GuestListScreen />} />
               <Route path="/i/:inviteCode" element={<PublicInviteView />} />
               <Route path="*" element={<Navigate to="/" replace />} />
