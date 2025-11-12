@@ -196,7 +196,7 @@ export const PartyFormScreen: React.FC = () => {
               onChange={(e) => setChildName(e.target.value)}
               placeholder="Child's Name*"
               style={{
-                flex: 1,
+                width:"100%",
                 background: 'transparent',
                 border: 'none',
                 outline: 'none',
@@ -234,7 +234,7 @@ export const PartyFormScreen: React.FC = () => {
                   alignItems: 'center'
                 }}
               >
-                <CalendarIcon />
+                <Calendar size={16} color='#26275A' />
               </button>
             </div>
           </div>
