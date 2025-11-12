@@ -1,0 +1,767 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Calendar, Music, Video, HeartHandshake, ArrowRight, Plus, X, Camera, Clock, MapPin, Info } from 'lucide-react';
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
+import { FormInput } from '@/components/ui/form-input';
+import { FormTextarea } from '@/components/ui/form-textarea';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { BackgroundModal } from '@/components/modals/BackgroundModal';
+import { InvitePreviewModal } from '@/components/modals/InvitePreviewModal';
+
+interface Theme {
+  id: string;
+  name: string;
+  icon: string;
+  bgColor: string;
+}
+
+const themes: Theme[] = [
+  { id: 'superhero', name: 'Superhero', icon: '🦸', bgColor: 'bg-gradient-to-br from-pink-500 to-purple-600' },
+  { id: 'birthday', name: 'Birthday', icon: '🎂', bgColor: 'bg-gradient-to-br from-blue-200 to-blue-400' },
+  { id: 'fairy', name: 'Fairy', icon: '✨', bgColor: 'bg-gradient-to-br from-pink-200 to-purple-300' },
+  { id: 'pamper', name: 'Pamper', icon: '💅', bgColor: 'bg-gradient-to-br from-red-400 to-pink-500' },
+  { id: 'disco', name: 'Disco', icon: '🎵', bgColor: 'bg-gradient-to-br from-blue-500 to-purple-600' },
+  { id: 'sports', name: 'Sports', icon: '⚽', bgColor: 'bg-gradient-to-br from-green-500 to-blue-600' },
+  { id: 'dance', name: 'Dance', icon: '🕺', bgColor: 'bg-gradient-to-br from-indigo-600 to-purple-700' },
+  { id: 'science', name: 'Science', icon: '🧪', bgColor: 'bg-gradient-to-br from-teal-400 to-green-400' },
+  { id: 'adventure', name: 'Adventure', icon: '🏕️', bgColor: 'bg-gradient-to-br from-orange-500 to-yellow-500' },
+];
+
+export const PartyFormScreen: React.FC = () => {
+  const navigate = useNavigate();
+
+  const [partyName, setPartyName] = useState('');
+  const [childName, setChildName] = useState('');
+  const [dob, setDob] = useState('');
+
+  const [eventDate, setEventDate] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [location, setLocation] = useState('');
+  const [description, setDescription] = useState('');
+  const [temperature, setTemperature] = useState('');
+  const [rsvpDeadline, setRsvpDeadline] = useState('');
+  const [requireParentAttendance, setRequireParentAttendance] = useState(false);
+
+  const [selectedTheme, setSelectedTheme] = useState<Theme | null>(null);
+
+  const [videoUrl, setVideoUrl] = useState('');
+
+  const [giftIdeas, setGiftIdeas] = useState<string[]>([]);
+  const [currentGiftInput, setCurrentGiftInput] = useState('');
+
+  const [isBackgroundModalOpen, setIsBackgroundModalOpen] = useState(false);
+  const [selectedBackground, setSelectedBackground] = useState<any>(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+
+  const isEventDetailsComplete = eventDate && startTime && location;
+  const isThemeSelected = selectedTheme !== null;
+  const isVideoAdded = videoUrl.trim().length > 0;
+  const hasGiftIdeas = giftIdeas.length > 0;
+
+  const handleAddGift = () => {
+    if (currentGiftInput.trim()) {
+      setGiftIdeas([...giftIdeas, currentGiftInput.trim()]);
+      setCurrentGiftInput('');
+    }
+  };
+
+  const handleRemoveGift = (index: number) => {
+    setGiftIdeas(giftIdeas.filter((_, i) => i !== index));
+  };
+
+  const canContinue = partyName.trim() && childName.trim() && isEventDetailsComplete;
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        padding: '0px',
+        gap: '0px',
+        position: 'relative',
+        width: '100%',
+        height: '100vh',
+        background: 'linear-gradient(180deg, #66FFB8 0%, #26275A 100%), #FFFFFF',
+        borderRadius: '0px'
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '0px 32px',
+          gap: '63.24px',
+          width: '100%',
+          height: '80px',
+          borderRadius: '0px',
+          flex: 'none',
+          order: 0,
+          alignSelf: 'stretch',
+          flexGrow: 0
+        }}
+      >
+        <button
+          onClick={() => navigate('/')}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            padding: 0,
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          <ArrowLeft size={20} color="#26275A" strokeWidth={2} />
+        </button>
+
+        <button
+          onClick={() => setShowPreviewModal(true)}
+          style={{
+            background: 'rgba(255, 255, 255, 0.4)',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '8px 16px',
+            fontFamily: 'Inter, sans-serif',
+            fontWeight: 500,
+            fontSize: '14px',
+            color: '#26275A',
+            cursor: 'pointer'
+          }}
+        >
+          Preview
+        </button>
+      </div>
+
+      <ScrollArea className="w-full flex-1">
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            padding: '0px 16px 16px',
+            gap: '26px',
+            width: '100%',
+            borderRadius: '0px'
+          }}
+        >
+        <div
+          style={{
+            width: '100%',
+            background: 'rgba(255, 255, 255, 0.3)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '14px',
+            padding: '32px 24px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '32px'
+          }}
+        >
+          <input
+            type="text"
+            value={partyName}
+            onChange={(e) => setPartyName(e.target.value)}
+            placeholder="Party Name*"
+            style={{
+              width: '100%',
+              background: 'transparent',
+              border: 'none',
+              outline: 'none',
+              textAlign: 'center',
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 600,
+              fontSize: '24px',
+              color: '#26275A'
+            }}
+          />
+
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '16px'
+            }}
+          >
+            <input
+              type="text"
+              value={childName}
+              onChange={(e) => setChildName(e.target.value)}
+              placeholder="Child's Name*"
+              style={{
+                flex: 1,
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 500,
+                fontSize: '18px',
+                color: '#26275A'
+              }}
+            />
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontWeight: 500,
+                  fontSize: '18px',
+                  color: '#26275A'
+                }}
+              >
+                DOB
+              </span>
+              <button
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M10.6667 1.3335V4.00016M5.33333 1.3335V4.00016M2 6.66683H14M3.33333 2.66683H12.6667C13.403 2.66683 14 3.26378 14 4.00016V13.3335C14 14.0699 13.403 14.6668 12.6667 14.6668H3.33333C2.59695 14.6668 2 14.0699 2 13.3335V4.00016C2 3.26378 2.59695 2.66683 3.33333 2.66683Z" stroke="#26275A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <Accordion className="w-full">
+          <AccordionItem value="event-details" completed={isEventDetailsComplete}>
+            <AccordionTrigger
+              value="event-details"
+              icon={<Calendar size={28} color="#66FFB8" strokeWidth={2} />}
+              completed={isEventDetailsComplete}
+            >
+              Add Event Details
+            </AccordionTrigger>
+            <AccordionContent value="event-details">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
+                <FormInput
+                  label="Date"
+                  type="text"
+                  placeholder="MM/DD/YYYY"
+                  value={eventDate}
+                  onChange={(e) => setEventDate(e.target.value)}
+                />
+
+                <div style={{ display: 'flex', flexDirection: 'row', gap: '12px', width: '100%' }}>
+                  <FormInput
+                    label="Start Time"
+                    type="text"
+                    placeholder="HH:MM AM/PM"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                  />
+                  <FormInput
+                    label="End Time"
+                    type="text"
+                    placeholder="HH:MM AM/PM"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                  />
+                </div>
+
+                <FormInput
+                  label="Location"
+                  placeholder="123 Smith Street"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                />
+
+                <FormTextarea
+                  label="Description"
+                  placeholder="Tell guests about your event..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+
+                <FormInput
+                  label="RSVP By Date (Optional)"
+                  type="text"
+                  placeholder="MM/DD/YYYY"
+                  value={rsvpDeadline}
+                  onChange={(e) => setRsvpDeadline(e.target.value)}
+                  helperText="Set a deadline for guests to respond"
+                />
+
+                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0px', gap: '13px', width: '100%', height: '40px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', padding: '0px', gap: '6px', width: '212px', height: '20px', margin: '0 auto' }}>
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontStyle: 'normal', fontWeight: 500, fontSize: '14px', lineHeight: '20px', textAlign: 'center', color: '#26275A' }}>Require a parent attendance</span>
+                    <Info size={16} strokeWidth={1} color="#26275A" />
+                  </div>
+                  <Switch
+                    checked={requireParentAttendance}
+                    onCheckedChange={setRequireParentAttendance}
+                    style={{ margin: '0 auto' }}
+                  />
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="party-theme" completed={isThemeSelected}>
+            <AccordionTrigger
+              value="party-theme"
+              icon={<Music size={28} color="#66FFB8" strokeWidth={2} />}
+              completed={isThemeSelected}
+            >
+              {selectedTheme ? `${selectedTheme.name} Theme` : 'Add a Party Theme'}
+            </AccordionTrigger>
+            <AccordionContent value="party-theme">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
+                <ScrollArea className="w-[320px]">
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateRows: 'repeat(2, 1fr)',
+                    gridAutoFlow: 'column',
+                    gap: '16px',
+                    paddingBottom: '8px',
+                    width: 'max-content'
+                  }}>
+                      {themes.map((theme) => (
+                      <button
+                        key={theme.id}
+                        onClick={() => setSelectedTheme(theme)}
+                        style={{
+                          boxSizing: 'border-box',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          padding: '12px',
+                          gap: '8px',
+                          minWidth: '95px',
+                          width: '95px',
+                          height: '95px',
+                          background: selectedTheme?.id === theme.id ? 'rgba(102, 255, 184, 0.2)' : '#FFFFFF',
+                          border: selectedTheme?.id === theme.id ? '1px solid #66FFB8' : '1px solid rgba(38, 39, 90, 0.1)',
+                          borderRadius: '10px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          outline: 'none',
+                          flexShrink: 0
+                        }}
+                      >
+                        <div
+                          className={theme.bgColor}
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            padding: '0px',
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '16777200px',
+                            fontSize: '16px',
+                            fontWeight: 500,
+                            color: '#FFFFFF'
+                          }}
+                        >
+                          {theme.icon}
+                        </div>
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            padding: '0px',
+                            gap: '2px',
+                            width: '70px',
+                            height: '20px'
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontFamily: 'Inter, sans-serif',
+                              fontStyle: 'normal',
+                              fontWeight: 500,
+                              fontSize: '14px',
+                              lineHeight: '20px',
+                              color: '#26275A',
+                              textAlign: 'center'
+                            }}
+                          >
+                            {theme.name}
+                          </span>
+                        </div>
+                      </button>
+                      ))}
+                  </div>
+                  <ScrollBar orientation="horizontal" />
+                </ScrollArea>
+                <button
+                  onClick={() => setIsBackgroundModalOpen(true)}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'flex-start',
+                    padding: '0px 26px',
+                    gap: '10px',
+                    width: '311px',
+                    height: '32px',
+                    background: 'rgba(240, 253, 244, 0.5)',
+                    borderRadius: '10px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    alignSelf: 'stretch',
+                    outline: 'none'
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      padding: '0px',
+                      gap: '8px',
+                      width: '195px',
+                      height: '32px'
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        padding: '0px',
+                        width: '32px',
+                        height: '32px'
+                      }}
+                    >
+                      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <mask id="mask0_2207_3293" style={{ maskType: 'alpha' }} maskUnits="userSpaceOnUse" x="4" y="4" width="24" height="24">
+                          <rect x="4" y="4" width="24" height="24" fill="#D9D9D9"/>
+                        </mask>
+                        <g mask="url(#mask0_2207_3293)">
+                          <path d="M9 25C8.45 25 7.97917 24.8042 7.5875 24.4125C7.19583 24.0208 7 23.55 7 23V9C7 8.45 7.19583 7.97917 7.5875 7.5875C7.97917 7.19583 8.45 7 9 7H17V9H9V23H23V15H25V23C25 23.55 24.8042 24.0208 24.4125 24.4125C24.0208 24.8042 23.55 25 23 25H9ZM10 21H22L18.25 16L15.25 20L13 17L10 21ZM21 13V11H19V9H21V7H23V9H25V11H23V13H21Z" fill="#2D3748"/>
+                        </g>
+                      </svg>
+                    </div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        padding: '1px 0px',
+                        gap: '10px',
+                        width: '155px',
+                        height: '32px',
+                        alignSelf: 'stretch'
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontFamily: 'Outfit, sans-serif',
+                          fontStyle: 'normal',
+                          fontWeight: 500,
+                          fontSize: '14px',
+                          lineHeight: '20px',
+                          color: '#26275A'
+                        }}
+                      >
+                        Add Custom Background
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="video-invite" completed={isVideoAdded}>
+            <AccordionTrigger
+              value="video-invite"
+              icon={<Video size={28} color="#66FFB8" strokeWidth={2} />}
+              completed={isVideoAdded}
+            >
+              Add a Video to the invite
+            </AccordionTrigger>
+            <AccordionContent value="video-invite">
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '24px',
+                width: '100%',
+                background: '#FFFFFF',
+                borderRadius: '16px'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  padding: '48px 24px',
+                  gap: '24px',
+                  background: '#F7FAFC',
+                  border: '2px dashed #CBD5E0',
+                  borderRadius: '12px'
+                }}>
+                  <Camera size={64} color="#94A3B8" strokeWidth={1.5} />
+                  <p style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontWeight: 400,
+                    fontSize: '18px',
+                    lineHeight: '28px',
+                    color: '#64748B',
+                    textAlign: 'center',
+                    margin: 0
+                  }}>
+                    Record a special message for your party invite
+                  </p>
+                  <button style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    padding: '8px 104px',
+                    gap: '10px',
+                    width: '242px',
+                    height: '36px',
+                    background: '#66FFB8',
+                    borderRadius: '100px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontFamily: 'Inter',
+                    fontStyle: 'normal',
+                    fontWeight: 500,
+                    fontSize: '14px',
+                    lineHeight: '20px',
+                    color: '#26275A',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    Start recording
+                  </button>
+                </div>
+
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '8px 0'
+                }}>
+                  <span style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '16px',
+                    color: '#94A3B8',
+                    fontWeight: 400
+                  }}>or</span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <Input
+                    placeholder="https://youtube.com/watch?v=..."
+                    value={videoUrl}
+                    onChange={(e) => setVideoUrl(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '16px 20px',
+                      background: '#FFFFFF',
+                      border: '1.5px solid #E2E8F0',
+                      borderRadius: '12px',
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: '16px',
+                      color: '#94A3B8'
+                    }}
+                  />
+                  <p style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '16px',
+                    color: '#94A3B8',
+                    textAlign: 'center',
+                    margin: 0,
+                    fontWeight: 400
+                  }}>
+                    Add a YouTube or Vimeo link
+                  </p>
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="wishlist" completed={hasGiftIdeas}>
+            <AccordionTrigger
+              value="wishlist"
+              icon={<HeartHandshake size={28} color="#66FFB8" strokeWidth={2} />}
+              completed={hasGiftIdeas}
+            >
+              Wishlist (Optional) {hasGiftIdeas && `• ${giftIdeas.length} ideas`}
+            </AccordionTrigger>
+            <AccordionContent value="wishlist">
+              <div className="space-y-4" style={{ width: '100%' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
+                  <Input
+                    placeholder="Enter gift idea..."
+                    value={currentGiftInput}
+                    onChange={(e) => setCurrentGiftInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddGift()}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      padding: '4px 12px',
+                      height: '36px',
+                      background: '#F8FAFC',
+                      borderRadius: '8px',
+                      flex: 1,
+                      fontFamily: 'Inter',
+                      fontStyle: 'normal',
+                      fontWeight: 400,
+                      fontSize: '16px',
+                      lineHeight: '19px',
+                      color: '#64748B',
+                      border: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                  <button
+                    onClick={handleAddGift}
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: '#66FFB8',
+                      borderRadius: '8px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      flexShrink: 0
+                    }}
+                  >
+                    <Plus size={20} color="#26275A" />
+                  </button>
+                </div>
+
+                {giftIdeas.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {giftIdeas.map((gift, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '16px',
+                          background: '#F0FDF4',
+                          border: '2px solid #66FFB8',
+                          borderRadius: '12px',
+                          width: '100%',
+                          boxSizing: 'border-box'
+                        }}
+                      >
+                        <span style={{
+                          fontFamily: 'Inter',
+                          fontStyle: 'normal',
+                          fontWeight: 400,
+                          fontSize: '16px',
+                          lineHeight: '19px',
+                          color: '#000000'
+                        }}>{gift}</span>
+                        <button
+                          onClick={() => handleRemoveGift(index)}
+                          style={{
+                            width: '24px',
+                            height: '24px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            flexShrink: 0
+                          }}
+                        >
+                          <X size={20} color="#000000" strokeWidth={2} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-white/70">
+                    <p>No gift ideas added yet</p>
+                  </div>
+                )}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+
+        <button
+          onClick={() => navigate('/guests')}
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: '8px 24px',
+            gap: '10px',
+            width: '100%',
+            height: '40px',
+            minHeight: '40px',
+            background: '#66FFB8',
+            borderRadius: '24px',
+            border: 'none',
+            cursor: 'pointer',
+            fontFamily: 'Inter',
+            fontStyle: 'normal',
+            fontWeight: 500,
+            fontSize: '14px',
+            lineHeight: '20px',
+            color: '#26275A'
+          }}
+        >
+          Continue to Invite Guests
+          <ArrowRight size={16} color="#26275A" strokeWidth={2} />
+        </button>
+        </div>
+      </ScrollArea>
+
+      <BackgroundModal
+        isOpen={isBackgroundModalOpen}
+        onClose={() => setIsBackgroundModalOpen(false)}
+        onSelectBackground={(bg) => {
+          setSelectedBackground(bg);
+          setIsBackgroundModalOpen(false);
+        }}
+      />
+
+      <InvitePreviewModal
+        open={showPreviewModal}
+        party={{
+          party_name: partyName || '',
+          child_name: childName || '',
+          event_date: eventDate || '',
+          start_time: startTime || '',
+          end_time: endTime,
+          location: location || '',
+          description: description,
+          temperature: temperature || '31',
+          gift_ideas: giftIdeas,
+          rsvp_deadline: rsvpDeadline,
+        }}
+        onClose={() => setShowPreviewModal(false)}
+      />
+    </div>
+  );
+};
