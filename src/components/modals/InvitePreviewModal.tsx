@@ -4,7 +4,7 @@ import {
   DialogContent,
 } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CalendarIcon, MapPinIcon, SunIcon, ClockIcon, ChevronDownIcon } from '@/components/icons';
+import { CalendarIcon, MapPinIcon, SunIcon, ClockIcon, ChevronDownIcon, XIcon } from '@/components/icons';
 import { GuestListModal } from './GuestListModal';
 
 interface InvitePreviewModalProps {
@@ -123,6 +123,13 @@ export const InvitePreviewModal: React.FC<InvitePreviewModalProps> = ({
         onPointerDownOutside={(e) => e.preventDefault()} 
         onInteractOutside={(e) => e.preventDefault()}
       >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 transition-colors z-20"
+          aria-label="Close"
+        >
+          <XIcon />
+        </button>
         <div className="flex flex-col gap-4">
           {/* Dialog Header */}
           <div className="self-stretch h-11 flex flex-col justify-start items-start gap-2">
