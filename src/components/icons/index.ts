@@ -13,4 +13,5 @@ export { XIcon } from './XIcon';
 export { LogoIcon } from './LogoIcon';
 export { StartEffectIcon } from './StartEffectIcon';
 export { GraphIcon } from './GraphIcon';
+export { LocationPinIcon } from './LocationPinIcon';
 export { GiftboxIcon } from './GiftboxIcon';

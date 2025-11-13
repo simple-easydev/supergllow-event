@@ -1,10 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PartyCard } from '@/components/PartyCard';
+import { supabase } from '@/lib/supabase';
 
-export const InviteDetailScreen: React.FC = () => {
+export const AccountDetailScreen: React.FC = () => {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error || !session) {
+          console.log('No valid session, redirecting to home');
+          navigate('/', { replace: true });
+          return;
+        }
+
+        // Session is valid, user is authenticated
+        console.log('=== AUTHENTICATED USER ===');
+        console.log('Session:', session);
+        console.log('User ID:', session.user.id);
+        console.log('Email:', session.user.email);
+        console.log('User metadata:', session.user.user_metadata);
+        console.log('==========================');
+        
+        setIsLoading(false);
+      } catch (err) {
+        console.error('Error checking auth:', err);
+        navigate('/', { replace: true });
+      }
+    };
+
+    checkAuth();
+  }, [navigate]);
+
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: '100%',
+          height: '100vh',
+          background: 'linear-gradient(180deg, #66FFB8 0%, #26275A 100%)',
+        }}
+      >
+        <div className="text-white text-xl font-heading">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div

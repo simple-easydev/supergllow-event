@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { EditIcon, ArrowRightIcon } from '@/components/icons';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import PreSignupScreen from './PreSignupScreen';
+import { supabase } from '@/lib/supabase';
 
 const SLIDER_IMAGES = [
   {
@@ -29,6 +30,30 @@ export const HomeScreen: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user?.email) {
+          setUserEmail(session.user.email);
+        } else {
+          // No session, show signup dialog
+          setIsPreSignupOpen(true);
+        }
+      } catch (err) {
+        console.error('Error checking auth:', err);
+        setIsPreSignupOpen(true);
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!scrollRef.current) return;
@@ -195,7 +220,7 @@ export const HomeScreen: React.FC = () => {
           style={{
             display: 'flex',
             flexDirection: 'row',
-            justifyContent: 'space-between',
+            justifyContent: 'center',
             alignItems: 'center',
             padding: '10px 12px',
             gap: '10px',
@@ -209,8 +234,8 @@ export const HomeScreen: React.FC = () => {
               boxSizing: 'border-box',
               display: 'flex',
               flexDirection: 'row',
-              justifyContent: 'center',
               alignItems: 'center',
+              justifyContent: 'center',
               padding: '4px 12px',
               gap: '12px',
               width: '337px',
@@ -221,18 +246,19 @@ export const HomeScreen: React.FC = () => {
           >
             <span
               style={{
-                width: '148px',
-                height: '19px',
                 fontFamily: 'Inter',
                 fontStyle: 'normal',
                 fontWeight: 400,
                 fontSize: '16px',
                 lineHeight: '19px',
                 color: '#FFFFFF',
-                flexGrow: 0
+                flexShrink: 1,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
               }}
             >
-              john@example.com
+              {isCheckingAuth ? 'Loading...' : userEmail || 'Sign in to continue'}
             </span>
             <div
               onClick={() => setIsPreSignupOpen(true)}
@@ -242,8 +268,9 @@ export const HomeScreen: React.FC = () => {
                 width: '11.2px',
                 height: '11.2px',
                 borderRadius: '14px',
-                flexGrow: 0,
-                cursor: 'pointer'
+                flexShrink: 0,
+                cursor: 'pointer',
+                marginLeft: '4px'
               }}
               aria-label="Open signup dialog"
             >

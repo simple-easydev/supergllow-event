@@ -8,9 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { MobileDatePicker } from '@/components/ui/date-picker-mobile';
+import { MobileTimePicker } from '@/components/ui/time-picker-mobile';
 import { BackgroundModal } from '@/components/modals/BackgroundModal';
 import { InvitePreviewModal } from '@/components/modals/InvitePreviewModal';
-import { CalendarIcon, ImageUploadIcon } from '@/components/icons';
+import { CalendarIcon, ImageUploadIcon, LocationPinIcon } from '@/components/icons';
 import { useParty } from '@/contexts';
 
 interface Theme {
@@ -38,15 +40,15 @@ export const PartyFormScreen: React.FC = () => {
 
   const [partyName, setPartyName] = useState('');
   const [childName, setChildName] = useState('');
-  const [dob, setDob] = useState('');
+  const [dob, setDob] = useState<Date>();
 
-  const [eventDate, setEventDate] = useState('');
+  const [eventDate, setEventDate] = useState<Date>();
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
   const [temperature, setTemperature] = useState('');
-  const [rsvpDeadline, setRsvpDeadline] = useState('');
+  const [rsvpDeadline, setRsvpDeadline] = useState<Date>();
   const [requireParentAttendance, setRequireParentAttendance] = useState(false);
 
   const [selectedTheme, setSelectedTheme] = useState<Theme | null>(null);
@@ -112,15 +114,12 @@ export const PartyFormScreen: React.FC = () => {
     }
   };
 
-  const handleRsvpDeadlineBlur = (value: string) => {
-    if (value && !validateDate(value)) {
-      setErrors(prev => ({ ...prev, rsvpDeadline: 'Please enter a valid date (MM/DD/YYYY)' }));
-    } else {
-      setErrors(prev => ({ ...prev, rsvpDeadline: undefined }));
-    }
-  };
-
   const isEventDetailsComplete = Boolean(eventDate && startTime && location);
+  
+  const formatDateForSave = (date: Date | undefined): string => {
+    if (!date) return '';
+    return `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear()}`;
+  };
   const isThemeSelected = selectedTheme !== null;
   const isVideoAdded = videoUrl.trim().length > 0;
   const hasGiftIdeas = giftIdeas.length > 0;
@@ -139,12 +138,8 @@ export const PartyFormScreen: React.FC = () => {
   const canContinue = partyName.trim() && 
     childName.trim() && 
     isEventDetailsComplete && 
-    !errors.eventDate && 
-    !errors.startTime && 
-    !errors.endTime && 
     !errors.location && 
     !errors.rsvpDeadline &&
-    validateDate(eventDate) &&
     validateTime(startTime) &&
     validateLocation(location);
 
@@ -259,7 +254,8 @@ export const PartyFormScreen: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              gap: '16px'
+              gap: '16px',
+              overflow: 'hidden'
             }}
           >
             <input
@@ -268,6 +264,8 @@ export const PartyFormScreen: React.FC = () => {
               onChange={(e) => setChildName(e.target.value)}
               placeholder="Child's Name*"
               style={{
+                flex: 1,
+                minWidth: 0,
                 width:"100%",
                 background: 'transparent',
                 border: 'none',
@@ -275,40 +273,19 @@ export const PartyFormScreen: React.FC = () => {
                 fontFamily: 'Inter, sans-serif',
                 fontWeight: 500,
                 fontSize: '18px',
-                color: '#26275A'
+                color: '#26275A',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
               }}
             />
 
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontWeight: 500,
-                  fontSize: '18px',
-                  color: '#26275A'
-                }}
-              >
-                DOB
-              </span>
-              <button
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                  display: 'flex',
-                  alignItems: 'center'
-                }}
-              >
-                <Calendar size={16} color='#26275A' />
-              </button>
-            </div>
+            <MobileDatePicker
+              date={dob}
+              onDateChange={setDob}
+              placeholder=""
+              inline={true}
+            />
           </div>
         </div>
 
@@ -323,77 +300,29 @@ export const PartyFormScreen: React.FC = () => {
             </AccordionTrigger>
             <AccordionContent value="event-details">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
-                  <FormInput
-                    label="Date"
-                    type="text"
-                    placeholder="MM/DD/YYYY"
-                    value={eventDate}
-                    onChange={(e) => setEventDate(e.target.value)}
-                    onBlur={(e) => handleDateBlur(e.target.value)}
-                    style={{
-                      border: errors.eventDate ? '1.5px solid #EF4444' : undefined
-                    }}
-                  />
-                  {errors.eventDate && (
-                    <span style={{
-                      fontFamily: 'Inter, sans-serif',
-                      fontSize: '12px',
-                      color: '#EF4444',
-                      paddingLeft: '4px'
-                    }}>
-                      {errors.eventDate}
-                    </span>
-                  )}
-                </div>
+                <MobileDatePicker
+                  date={eventDate}
+                  onDateChange={setEventDate}
+                  placeholder="MM/DD/YYYY"
+                  label="Date"
+                  className="w-full"
+                />
 
                 <div style={{ display: 'flex', flexDirection: 'row', gap: '12px', width: '100%' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                    <FormInput
-                      label="Start Time"
-                      type="text"
-                      placeholder="HH:MM AM/PM"
-                      value={startTime}
-                      onChange={(e) => setStartTime(e.target.value)}
-                      onBlur={(e) => handleTimeBlur('startTime', e.target.value)}
-                      style={{
-                        border: errors.startTime ? '1.5px solid #EF4444' : undefined
-                      }}
-                    />
-                    {errors.startTime && (
-                      <span style={{
-                        fontFamily: 'Inter, sans-serif',
-                        fontSize: '12px',
-                        color: '#EF4444',
-                        paddingLeft: '4px'
-                      }}>
-                        {errors.startTime}
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                    <FormInput
-                      label="End Time"
-                      type="text"
-                      placeholder="HH:MM AM/PM"
-                      value={endTime}
-                      onChange={(e) => setEndTime(e.target.value)}
-                      onBlur={(e) => handleTimeBlur('endTime', e.target.value)}
-                      style={{
-                        border: errors.endTime ? '1.5px solid #EF4444' : undefined
-                      }}
-                    />
-                    {errors.endTime && (
-                      <span style={{
-                        fontFamily: 'Inter, sans-serif',
-                        fontSize: '12px',
-                        color: '#EF4444',
-                        paddingLeft: '4px'
-                      }}>
-                        {errors.endTime}
-                      </span>
-                    )}
-                  </div>
+                  <MobileTimePicker
+                    time={startTime}
+                    onTimeChange={(time) => setStartTime(time || '')}
+                    placeholder="HH:MM"
+                    label="Start Time"
+                    className="flex-1"
+                  />
+                  <MobileTimePicker
+                    time={endTime}
+                    onTimeChange={(time) => setEndTime(time || '')}
+                    placeholder="HH:MM"
+                    label="End Time"
+                    className="flex-1"
+                  />
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
@@ -403,8 +332,10 @@ export const PartyFormScreen: React.FC = () => {
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     onBlur={(e) => handleLocationBlur(e.target.value)}
+                    icon={<LocationPinIcon style={{ width: '20px', height: '20px' }} />}
                     style={{
-                      border: errors.location ? '1.5px solid #EF4444' : undefined
+                      backgroundColor: '#F8FAFC',
+                      border: errors.location ? '1.5px solid #EF4444' : 'none'
                     }}
                   />
                   {errors.location && (
@@ -427,28 +358,22 @@ export const PartyFormScreen: React.FC = () => {
                 />
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
-                  <FormInput
-                    label="RSVP By Date (Optional)"
-                    type="text"
+                  <MobileDatePicker
+                    date={rsvpDeadline}
+                    onDateChange={setRsvpDeadline}
                     placeholder="MM/DD/YYYY"
-                    value={rsvpDeadline}
-                    onChange={(e) => setRsvpDeadline(e.target.value)}
-                    onBlur={(e) => handleRsvpDeadlineBlur(e.target.value)}
-                    helperText="Set a deadline for guests to respond"
-                    style={{
-                      border: errors.rsvpDeadline ? '1.5px solid #EF4444' : undefined
-                    }}
+                    label="RSVP By Date (Optional)"
+                    className="w-full"
                   />
-                  {errors.rsvpDeadline && (
-                    <span style={{
-                      fontFamily: 'Inter, sans-serif',
-                      fontSize: '12px',
-                      color: '#EF4444',
-                      paddingLeft: '4px'
-                    }}>
-                      {errors.rsvpDeadline}
-                    </span>
-                  )}
+                  <p style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '12px',
+                    color: '#64748B',
+                    margin: 0,
+                    paddingLeft: '4px'
+                  }}>
+                    Set a deadline for guests to respond
+                  </p>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0px', gap: '13px', width: '100%', height: '40px' }}>
@@ -858,11 +783,12 @@ export const PartyFormScreen: React.FC = () => {
             updateParty({
               party_name: partyName,
               child_name: childName,
-              event_date: eventDate,
+              event_date: formatDateForSave(eventDate),
               start_time: startTime,
               end_time: endTime,
               location: location,
               description: description,
+              rsvp_deadline: formatDateForSave(rsvpDeadline),
               allow_non_listed_guests: true,
               collect_dietaries: true,
             });
@@ -912,14 +838,14 @@ export const PartyFormScreen: React.FC = () => {
         party={{
           party_name: partyName || '',
           child_name: childName || '',
-          event_date: eventDate || '',
+          event_date: formatDateForSave(eventDate) || '',
           start_time: startTime || '',
           end_time: endTime,
           location: location || '',
           description: description,
           temperature: temperature || '31',
           gift_ideas: giftIdeas,
-          rsvp_deadline: rsvpDeadline,
+          rsvp_deadline: formatDateForSave(rsvpDeadline),
         }}
         onClose={() => setShowPreviewModal(false)}
       />
