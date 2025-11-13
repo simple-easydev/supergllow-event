@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { CheckIcon } from '@/components/icons';
 
 interface AccordionContextValue {
   openItems: string[];
+  openedItems: string[];
   toggleItem: (value: string) => void;
 }
 
@@ -17,6 +17,7 @@ interface AccordionProps {
 
 export const Accordion: React.FC<AccordionProps> = ({ children, className }) => {
   const [openItems, setOpenItems] = useState<string[]>([]);
+  const [openedItems, setOpenedItems] = useState<string[]>([]);
 
   const toggleItem = (value: string) => {
     setOpenItems((prev) =>
@@ -24,10 +25,15 @@ export const Accordion: React.FC<AccordionProps> = ({ children, className }) => 
         ? prev.filter((item) => item !== value)
         : [...prev, value]
     );
+    
+    // Track that this item has been opened at least once
+    setOpenedItems((prev) => 
+      prev.includes(value) ? prev : [...prev, value]
+    );
   };
 
   return (
-    <AccordionContext.Provider value={{ openItems, toggleItem }}>
+    <AccordionContext.Provider value={{ openItems, openedItems, toggleItem }}>
       <div className={cn('flex flex-col gap-4', className)}>{children}</div>
     </AccordionContext.Provider>
   );
@@ -45,9 +51,10 @@ export const AccordionItem: React.FC<AccordionItemProps> = ({ children, value, c
   if (!context) throw new Error('AccordionItem must be used within Accordion');
 
   const isOpen = context.openItems.includes(value);
-  const isStartState = !completed && !isOpen;
+  const hasBeenOpened = context.openedItems.includes(value);
+  const isStartState = !completed && !hasBeenOpened && !isOpen;
   const isOpenState = isOpen;
-  const isClosedState = completed && !isOpen;
+  const isClosedState = (completed || hasBeenOpened) && !isOpen;
 
   return (
     <div
@@ -94,10 +101,10 @@ export const AccordionTrigger: React.FC<AccordionTriggerProps> = ({
   if (!context) throw new Error('AccordionTrigger must be used within Accordion');
 
   const isOpen = context.openItems.includes(value);
-
-  const isStartState = !completed && !isOpen;
+  const hasBeenOpened = context.openedItems.includes(value);
+  const isStartState = !completed && !hasBeenOpened && !isOpen;
   const isOpenState = isOpen;
-  const isClosedState = completed && !isOpen;
+  const isClosedState = (completed || hasBeenOpened) && !isOpen;
 
   return (
     <button
@@ -111,7 +118,7 @@ export const AccordionTrigger: React.FC<AccordionTriggerProps> = ({
         gap: isStartState ? '20px' : '24px',
         width: '100%',
         minHeight: '20px',
-        background: 'transparent',
+        background: isClosedState ? '#FFFFFF' : 'transparent',
         border: 'none',
         cursor: 'pointer',
       }}
@@ -146,23 +153,6 @@ export const AccordionTrigger: React.FC<AccordionTriggerProps> = ({
 
       {(isOpenState || isClosedState) && (
         <>
-          {isClosedState && completed && (
-            <div
-              style={{
-                width: '24px',
-                height: '24px',
-                borderRadius: '50%',
-                background: '#66FFB8',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginLeft: 'auto',
-                marginRight: '8px',
-              }}
-            >
-              <CheckIcon />
-            </div>
-          )}
           <ChevronDown
             size={20}
             color="#26275A"
