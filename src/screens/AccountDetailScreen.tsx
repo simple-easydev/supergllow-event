@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PartyCard } from '@/components/PartyCard';
-import { supabase } from '@/lib/supabase';
+import { supabase, Party } from '@/lib/supabase';
 
 export const AccountDetailScreen: React.FC = () => {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [parties, setParties] = useState<Party[]>([]);
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const fetchUserParties = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         
@@ -27,6 +28,20 @@ export const AccountDetailScreen: React.FC = () => {
         console.log('User metadata:', session.user.user_metadata);
         console.log('==========================');
         
+        // Fetch user's parties
+        const { data: partiesData, error: partiesError } = await supabase
+          .from('parties')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .order('event_date', { ascending: true });
+
+        if (partiesError) {
+          console.error('Error fetching parties:', partiesError);
+        } else {
+          console.log('Fetched parties:', partiesData);
+          setParties(partiesData || []);
+        }
+        
         setIsLoading(false);
       } catch (err) {
         console.error('Error checking auth:', err);
@@ -34,7 +49,7 @@ export const AccountDetailScreen: React.FC = () => {
       }
     };
 
-    checkAuth();
+    fetchUserParties();
   }, [navigate]);
 
   if (isLoading) {
@@ -275,52 +290,36 @@ export const AccountDetailScreen: React.FC = () => {
           Superglow
         </h1>
 
-        <div style={{ width: '100%', marginTop: '12px', overflow: 'visible' }}>
-          <div style={{ overflowX: 'scroll', overflowY: 'visible', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }} className="[&::-webkit-scrollbar]:hidden">
-            <div style={{ display: 'flex', gap: '16px', padding: '40px 16px 32px' }}>
-              <div style={{ cursor: 'pointer', flexShrink: 0, width: 'calc(100vw - 32px)' }} onClick={() => navigate('/party/1')}>
-                <PartyCard
-                  partyName="Sam's Superhero Party"
-                  eventDate="06/14/2025"
-                  startTime="1:00 PM"
-                  location="Riverside Park"
-                  temperature="22"
-                  coverImageUrl="/party-background.png"
-                  showHostLabel={true}
-                  guestInitials={['AT', 'HA', 'LM']}
-                  height="h-[480px]"
-                />
+        {parties.length > 0 ? (
+          <div style={{ width: '100%', marginTop: '12px', overflow: 'visible' }}>
+            <div style={{ overflowX: 'scroll', overflowY: 'visible', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }} className="[&::-webkit-scrollbar]:hidden">
+              <div style={{ display: 'flex', gap: '16px', padding: '40px 16px 32px' }}>
+                {parties.map((party) => (
+                  <div key={party.id} style={{ cursor: 'pointer', flexShrink: 0, width: 'calc(100vw - 32px)' }} onClick={() => navigate(`/party/${party.id}`)}>
+                    <PartyCard
+                      partyName={party.party_name}
+                      eventDate={party.event_date}
+                      startTime={party.start_time}
+                      location={party.location}
+                      temperature={party.temperature || '22'}
+                      coverImageUrl={party.cover_image_url || '/party-background.png'}
+                      showHostLabel={true}
+                      guestInitials={[]}
+                      height="h-[480px]"
+                    />
+                  </div>
+                ))}
+                <div style={{ width: '8px', flexShrink: 0 }} />
               </div>
-              <div style={{ cursor: 'pointer', flexShrink: 0, width: 'calc(100vw - 32px)' }} onClick={() => navigate('/party/1')}>
-                <PartyCard
-                  partyName="Sam's Superhero Party"
-                  eventDate="06/14/2025"
-                  startTime="1:00 PM"
-                  location="Riverside Park"
-                  temperature="22"
-                  coverImageUrl="/party-background.png"
-                  showHostLabel={true}
-                  guestInitials={['AT', 'HA', 'LM']}
-                  height="h-[480px]"
-                />
-              </div>
-              <div style={{ cursor: 'pointer', flexShrink: 0, width: 'calc(100vw - 32px)' }} onClick={() => navigate('/party/1')}>
-                <PartyCard
-                  partyName="Sam's Superhero Party"
-                  eventDate="06/14/2025"
-                  startTime="1:00 PM"
-                  location="Riverside Park"
-                  temperature="22"
-                  coverImageUrl="/party-background.png"
-                  showHostLabel={true}
-                  guestInitials={['AT', 'HA', 'LM']}
-                  height="h-[480px]"
-                />
-              </div>
-              <div style={{ width: '8px', flexShrink: 0 }} />
             </div>
           </div>
-        </div>
+        ) : (
+          <div style={{ width: '100%', marginTop: '32px', textAlign: 'center' }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', color: '#26275A', opacity: 0.6 }}>
+              No parties yet. Create your first party!
+            </p>
+          </div>
+        )}
 
         <p
           style={{
