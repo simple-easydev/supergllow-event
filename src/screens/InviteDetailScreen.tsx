@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PartyCard } from '@/components/PartyCard';
 
 export const InviteDetailScreen: React.FC = () => {
+  const navigate = useNavigate();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
     <div
@@ -36,41 +39,146 @@ export const InviteDetailScreen: React.FC = () => {
           flexGrow: 0
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            padding: '0px',
-            gap: '8px'
-          }}
-        >
-          <span
-            style={{
-              fontFamily: 'Outfit, sans-serif',
-              fontStyle: 'normal',
-              fontWeight: 500,
-              fontSize: '18px',
-              lineHeight: '23px',
-              color: '#26275A'
-            }}
-          >
-            Upcoming
-          </span>
+        <div style={{ position: 'relative' }}>
           <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              padding: '0px',
+              gap: '8px',
               background: 'transparent',
               border: 'none',
-              cursor: 'pointer',
-              padding: 0,
-              display: 'flex',
-              alignItems: 'center'
+              cursor: 'pointer'
             }}
           >
+            <span
+              style={{
+                fontFamily: 'Outfit, sans-serif',
+                fontStyle: 'normal',
+                fontWeight: 500,
+                fontSize: '18px',
+                lineHeight: '23px',
+                color: '#26275A'
+              }}
+            >
+              Upcoming
+            </span>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M4 6L8 10L12 6" stroke="#26275A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
+
+          {/* Dropdown Modal */}
+          {isDropdownOpen && (
+            <>
+              {/* Backdrop */}
+              <div
+                onClick={() => setIsDropdownOpen(false)}
+                style={{
+                  position: 'fixed',
+                  inset: 0,
+                  zIndex: 40
+                }}
+              />
+              
+              {/* Dropdown Content */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  marginTop: '8px',
+                  width: '144px',
+                  padding: '12px 16px',
+                  background: 'rgba(255, 255, 255, 0.6)',
+                  backdropFilter: 'blur(12px)',
+                  borderRadius: '8px',
+                  outline: '0.5px solid rgba(240, 253, 244, 1)',
+                  outlineOffset: '-0.5px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  zIndex: 50
+                }}
+              >
+                <button
+                  onClick={() => setIsDropdownOpen(false)}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    lineHeight: '20px',
+                    color: '#26275A',
+                    padding: 0
+                  }}
+                >
+                  Upcoming
+                </button>
+                <button
+                  onClick={() => setIsDropdownOpen(false)}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    lineHeight: '20px',
+                    color: '#26275A',
+                    padding: 0
+                  }}
+                >
+                  Past
+                </button>
+                <div style={{ height: 0, outline: '0.5px solid rgba(38, 39, 90, 0.2)', outlineOffset: '-0.25px' }} />
+                <button
+                  onClick={() => setIsDropdownOpen(false)}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    lineHeight: '20px',
+                    color: '#26275A',
+                    padding: 0
+                  }}
+                >
+                  Hosting
+                </button>
+                <button
+                  onClick={() => setIsDropdownOpen(false)}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    lineHeight: '20px',
+                    color: '#26275A',
+                    padding: 0
+                  }}
+                >
+                  Invites
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         <button
@@ -118,7 +226,7 @@ export const InviteDetailScreen: React.FC = () => {
           Superglow
         </h1>
 
-        <div style={{ marginTop: '12px', width: '100%' }}>
+        <div style={{ marginTop: '12px', width: '100%', cursor: 'pointer' }} onClick={() => navigate('/party/1')}>
           <PartyCard
             partyName="Sam's Superhero Party"
             eventDate="06/14/2025"

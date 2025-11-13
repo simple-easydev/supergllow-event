@@ -13,6 +13,7 @@ interface PartyCardProps {
   showHostLabel?: boolean;
   className?: string;
   height?: string;
+  actionButtons?: React.ReactNode;
 }
 
 export const PartyCard: React.FC<PartyCardProps> = ({
@@ -27,6 +28,7 @@ export const PartyCard: React.FC<PartyCardProps> = ({
   showHostLabel = false,
   className = '',
   height = 'h-72',
+  actionButtons,
 }) => {
   const formatDate = (dateString: string): string => {
     if (!dateString) return '';
@@ -134,6 +136,17 @@ export const PartyCard: React.FC<PartyCardProps> = ({
                 ))}
               </div>
             )}
+          </>
+        ) : actionButtons ? (
+          <>
+            <div className="flex-1 flex justify-start items-center gap-2.5">
+              <div className="text-white text-2xl font-medium font-['Outfit'] leading-loose">
+                Host
+              </div>
+            </div>
+            <div className="flex justify-end items-center" style={{ gap: '5px' }}>
+              {actionButtons}
+            </div>
           </>
         ) : (
           <div className="self-stretch flex justify-between items-center" />

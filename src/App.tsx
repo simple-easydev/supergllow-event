@@ -7,6 +7,7 @@ import { PartyFormScreen } from './screens/PartyFormScreen';
 import { GuestListScreen } from './screens/GuestListScreen';
 import { AccountScreen } from './screens/AccountScreen';
 import { InviteDetailScreen } from './screens/InviteDetailScreen';
+import { PartyDetailScreen } from './screens/PartyDetailScreen';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
               <Route path="/account" element={<AccountScreen />} />
               <Route path="/guests" element={<GuestListScreen />} />
               <Route path="/i/:inviteCode" element={<InviteDetailScreen />} />
+              <Route path="/party/:partyId" element={<PartyDetailScreen />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </ModalProvider>
