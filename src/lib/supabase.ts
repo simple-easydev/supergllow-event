@@ -41,6 +41,7 @@ export interface Party {
   invite_code: string;
   invite_link: string;
   gift_ideas: string[];
+  guests?: Array<{ id?: string; name: string; dietary?: string; type?: 'adult' | 'child' }>;
   created_at: string;
   updated_at: string;
 }

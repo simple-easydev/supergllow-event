@@ -21,7 +21,26 @@ export const PartyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [party, setParty] = useState<Party | null>(null);
 
   const updateParty = (updates: Partial<Party>) => {
-    setParty((prev) => (prev ? { ...prev, ...updates } : null));
+    setParty((prev) => {
+      if (prev) {
+        return { ...prev, ...updates };
+      } else {
+        // Create a new party object with the updates
+        return {
+          id: '',
+          user_id: '',
+          created_at: '',
+          updated_at: '',
+          party_name: '',
+          child_name: '',
+          event_date: '',
+          start_time: '',
+          location: '',
+          invite_code: '',
+          ...updates
+        } as Party;
+      }
+    });
   };
 
   const savePartyDraft = useCallback(() => {

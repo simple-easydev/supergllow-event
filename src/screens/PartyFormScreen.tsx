@@ -11,6 +11,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { BackgroundModal } from '@/components/modals/BackgroundModal';
 import { InvitePreviewModal } from '@/components/modals/InvitePreviewModal';
 import { CalendarIcon, ImageUploadIcon } from '@/components/icons';
+import { useParty } from '@/contexts';
 
 interface Theme {
   id: string;
@@ -33,6 +34,7 @@ const themes: Theme[] = [
 
 export const PartyFormScreen: React.FC = () => {
   const navigate = useNavigate();
+  const { updateParty } = useParty();
 
   const [partyName, setPartyName] = useState('');
   const [childName, setChildName] = useState('');
@@ -52,13 +54,73 @@ export const PartyFormScreen: React.FC = () => {
   const [videoUrl, setVideoUrl] = useState('');
 
   const [giftIdeas, setGiftIdeas] = useState<string[]>([]);
+
+  const [errors, setErrors] = useState<{
+    eventDate?: string;
+    startTime?: string;
+    endTime?: string;
+    location?: string;
+    rsvpDeadline?: string;
+  }>({});
   const [currentGiftInput, setCurrentGiftInput] = useState('');
 
   const [isBackgroundModalOpen, setIsBackgroundModalOpen] = useState(false);
   const [selectedBackground, setSelectedBackground] = useState<any>(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
 
-  const isEventDetailsComplete = eventDate && startTime && location;
+  const validateDate = (dateStr: string): boolean => {
+    if (!dateStr) return true; // Empty is OK while typing
+    const dateRegex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/(\d{4})$/;
+    if (!dateRegex.test(dateStr)) return false;
+    
+    const [month, day, year] = dateStr.split('/').map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.getMonth() === month - 1 && date.getDate() === day && date.getFullYear() === year;
+  };
+
+  const validateTime = (timeStr: string): boolean => {
+    if (!timeStr) return true; // Empty is OK while typing
+    const timeRegex = /^(0?[1-9]|1[0-2]):([0-5][0-9])\s?(AM|PM|am|pm)$/;
+    return timeRegex.test(timeStr);
+  };
+
+  const validateLocation = (location: string): boolean => {
+    return location.trim().length > 0;
+  };
+
+  const handleDateBlur = (value: string) => {
+    if (value && !validateDate(value)) {
+      setErrors(prev => ({ ...prev, eventDate: 'Please enter a valid date (MM/DD/YYYY)' }));
+    } else {
+      setErrors(prev => ({ ...prev, eventDate: undefined }));
+    }
+  };
+
+  const handleTimeBlur = (field: 'startTime' | 'endTime', value: string) => {
+    if (value && !validateTime(value)) {
+      setErrors(prev => ({ ...prev, [field]: 'Please enter a valid time (HH:MM AM/PM)' }));
+    } else {
+      setErrors(prev => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  const handleLocationBlur = (value: string) => {
+    if (value && !validateLocation(value)) {
+      setErrors(prev => ({ ...prev, location: 'Please enter a location' }));
+    } else {
+      setErrors(prev => ({ ...prev, location: undefined }));
+    }
+  };
+
+  const handleRsvpDeadlineBlur = (value: string) => {
+    if (value && !validateDate(value)) {
+      setErrors(prev => ({ ...prev, rsvpDeadline: 'Please enter a valid date (MM/DD/YYYY)' }));
+    } else {
+      setErrors(prev => ({ ...prev, rsvpDeadline: undefined }));
+    }
+  };
+
+  const isEventDetailsComplete = Boolean(eventDate && startTime && location);
   const isThemeSelected = selectedTheme !== null;
   const isVideoAdded = videoUrl.trim().length > 0;
   const hasGiftIdeas = giftIdeas.length > 0;
@@ -74,7 +136,17 @@ export const PartyFormScreen: React.FC = () => {
     setGiftIdeas(giftIdeas.filter((_, i) => i !== index));
   };
 
-  const canContinue = partyName.trim() && childName.trim() && isEventDetailsComplete;
+  const canContinue = partyName.trim() && 
+    childName.trim() && 
+    isEventDetailsComplete && 
+    !errors.eventDate && 
+    !errors.startTime && 
+    !errors.endTime && 
+    !errors.location && 
+    !errors.rsvpDeadline &&
+    validateDate(eventDate) &&
+    validateTime(startTime) &&
+    validateLocation(location);
 
   return (
     <div
@@ -251,37 +323,101 @@ export const PartyFormScreen: React.FC = () => {
             </AccordionTrigger>
             <AccordionContent value="event-details">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
-                <FormInput
-                  label="Date"
-                  type="text"
-                  placeholder="MM/DD/YYYY"
-                  value={eventDate}
-                  onChange={(e) => setEventDate(e.target.value)}
-                />
-
-                <div style={{ display: 'flex', flexDirection: 'row', gap: '12px', width: '100%' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
                   <FormInput
-                    label="Start Time"
+                    label="Date"
                     type="text"
-                    placeholder="HH:MM AM/PM"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
+                    placeholder="MM/DD/YYYY"
+                    value={eventDate}
+                    onChange={(e) => setEventDate(e.target.value)}
+                    onBlur={(e) => handleDateBlur(e.target.value)}
+                    style={{
+                      border: errors.eventDate ? '1.5px solid #EF4444' : undefined
+                    }}
                   />
-                  <FormInput
-                    label="End Time"
-                    type="text"
-                    placeholder="HH:MM AM/PM"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                  />
+                  {errors.eventDate && (
+                    <span style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: '12px',
+                      color: '#EF4444',
+                      paddingLeft: '4px'
+                    }}>
+                      {errors.eventDate}
+                    </span>
+                  )}
                 </div>
 
-                <FormInput
-                  label="Location"
-                  placeholder="123 Smith Street"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                />
+                <div style={{ display: 'flex', flexDirection: 'row', gap: '12px', width: '100%' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                    <FormInput
+                      label="Start Time"
+                      type="text"
+                      placeholder="HH:MM AM/PM"
+                      value={startTime}
+                      onChange={(e) => setStartTime(e.target.value)}
+                      onBlur={(e) => handleTimeBlur('startTime', e.target.value)}
+                      style={{
+                        border: errors.startTime ? '1.5px solid #EF4444' : undefined
+                      }}
+                    />
+                    {errors.startTime && (
+                      <span style={{
+                        fontFamily: 'Inter, sans-serif',
+                        fontSize: '12px',
+                        color: '#EF4444',
+                        paddingLeft: '4px'
+                      }}>
+                        {errors.startTime}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                    <FormInput
+                      label="End Time"
+                      type="text"
+                      placeholder="HH:MM AM/PM"
+                      value={endTime}
+                      onChange={(e) => setEndTime(e.target.value)}
+                      onBlur={(e) => handleTimeBlur('endTime', e.target.value)}
+                      style={{
+                        border: errors.endTime ? '1.5px solid #EF4444' : undefined
+                      }}
+                    />
+                    {errors.endTime && (
+                      <span style={{
+                        fontFamily: 'Inter, sans-serif',
+                        fontSize: '12px',
+                        color: '#EF4444',
+                        paddingLeft: '4px'
+                      }}>
+                        {errors.endTime}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
+                  <FormInput
+                    label="Location"
+                    placeholder="123 Smith Street"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    onBlur={(e) => handleLocationBlur(e.target.value)}
+                    style={{
+                      border: errors.location ? '1.5px solid #EF4444' : undefined
+                    }}
+                  />
+                  {errors.location && (
+                    <span style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: '12px',
+                      color: '#EF4444',
+                      paddingLeft: '4px'
+                    }}>
+                      {errors.location}
+                    </span>
+                  )}
+                </div>
 
                 <FormTextarea
                   label="Description"
@@ -290,14 +426,30 @@ export const PartyFormScreen: React.FC = () => {
                   onChange={(e) => setDescription(e.target.value)}
                 />
 
-                <FormInput
-                  label="RSVP By Date (Optional)"
-                  type="text"
-                  placeholder="MM/DD/YYYY"
-                  value={rsvpDeadline}
-                  onChange={(e) => setRsvpDeadline(e.target.value)}
-                  helperText="Set a deadline for guests to respond"
-                />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
+                  <FormInput
+                    label="RSVP By Date (Optional)"
+                    type="text"
+                    placeholder="MM/DD/YYYY"
+                    value={rsvpDeadline}
+                    onChange={(e) => setRsvpDeadline(e.target.value)}
+                    onBlur={(e) => handleRsvpDeadlineBlur(e.target.value)}
+                    helperText="Set a deadline for guests to respond"
+                    style={{
+                      border: errors.rsvpDeadline ? '1.5px solid #EF4444' : undefined
+                    }}
+                  />
+                  {errors.rsvpDeadline && (
+                    <span style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: '12px',
+                      color: '#EF4444',
+                      paddingLeft: '4px'
+                    }}>
+                      {errors.rsvpDeadline}
+                    </span>
+                  )}
+                </div>
 
                 <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0px', gap: '13px', width: '100%', height: '40px' }}>
                   <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', padding: '0px', gap: '6px', width: '212px', height: '20px', margin: '0 auto' }}>
@@ -700,7 +852,23 @@ export const PartyFormScreen: React.FC = () => {
         </Accordion>
 
         <button
-          onClick={() => navigate('/guests')}
+          onClick={() => {
+            if (!canContinue) return;
+            // Save party data to context before navigating
+            updateParty({
+              party_name: partyName,
+              child_name: childName,
+              event_date: eventDate,
+              start_time: startTime,
+              end_time: endTime,
+              location: location,
+              description: description,
+              allow_non_listed_guests: true,
+              collect_dietaries: true,
+            });
+            navigate('/guests');
+          }}
+          disabled={!canContinue}
           style={{
             display: 'flex',
             flexDirection: 'row',
@@ -711,20 +879,21 @@ export const PartyFormScreen: React.FC = () => {
             width: '100%',
             height: '40px',
             minHeight: '40px',
-            background: '#66FFB8',
+            background: canContinue ? '#66FFB8' : '#CBD5E0',
             borderRadius: '24px',
             border: 'none',
-            cursor: 'pointer',
+            cursor: canContinue ? 'pointer' : 'not-allowed',
             fontFamily: 'Inter',
             fontStyle: 'normal',
             fontWeight: 500,
             fontSize: '14px',
             lineHeight: '20px',
-            color: '#26275A'
+            color: canContinue ? '#26275A' : '#64748B',
+            opacity: canContinue ? 1 : 0.6
           }}
         >
           Continue to Invite Guests
-          <ArrowRight size={16} color="#26275A" strokeWidth={2} />
+          <ArrowRight size={16} color={canContinue ? '#26275A' : '#64748B'} strokeWidth={2} />
         </button>
         </div>
       </ScrollArea>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRightIcon, LogoIcon, XIcon } from '@/components/icons';
+import { supabase } from '@/lib/supabase';
 
 interface PreSignupScreenProps {
   onClose?: () => void;
@@ -8,6 +9,10 @@ interface PreSignupScreenProps {
 
 export const PreSignupScreen: React.FC<PreSignupScreenProps> = ({ onClose }) => {
   const [showSignupForm, setShowSignupForm] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   if (showSignupForm) {
@@ -33,12 +38,59 @@ export const PreSignupScreen: React.FC<PreSignupScreenProps> = ({ onClose }) => 
             </p>
           </div>
 
-          <form className="w-full flex flex-col gap-4" onSubmit={(e) => {
+          <form className="w-full flex flex-col gap-4" onSubmit={async (e) => {
             e.preventDefault();
-            // Close the dialog and navigate to account page
-            if (onClose) onClose();
-            navigate('/account');
+            setError('');
+            setIsSubmitting(true);
+
+            try {
+              // Validate inputs
+              if (!fullName.trim() || !email.trim()) {
+                setError('Please fill in all fields');
+                setIsSubmitting(false);
+                return;
+              }
+
+              // Create user in Supabase
+              const { data, error: supabaseError } = await supabase
+                .from('users')
+                .insert([
+                  {
+                    user_name: fullName.trim(),
+                    email: email.trim().toLowerCase(),
+                  }
+                ])
+                .select()
+                .single();
+
+              if (supabaseError) {
+                if (supabaseError.code === '23505') {
+                  setError('This email is already registered');
+                } else {
+                  setError('Failed to create account. Please try again.');
+                }
+                setIsSubmitting(false);
+                return;
+              }
+
+              // Success - store user data in localStorage and navigate
+              if (data) {
+                localStorage.setItem('superglow_user', JSON.stringify(data));
+                if (onClose) onClose();
+                navigate('/account');
+              }
+            } catch (err) {
+              console.error('Error creating user:', err);
+              setError('An unexpected error occurred. Please try again.');
+              setIsSubmitting(false);
+            }
           }}>
+            {error && (
+              <div className="w-full p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+                {error}
+              </div>
+            )}
+
             <div className="flex flex-col gap-2">
               <label htmlFor="fullName" className="text-blue-950 text-sm font-medium leading-5">
                 Full Name
@@ -54,7 +106,11 @@ export const PreSignupScreen: React.FC<PreSignupScreenProps> = ({ onClose }) => 
                   id="fullName"
                   type="text"
                   placeholder="John Doe"
-                  className="w-full h-12 pl-12 pr-4 bg-white border border-slate-200 rounded-xl text-blue-950 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-transparent"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                  disabled={isSubmitting}
+                  className="w-full h-12 pl-12 pr-4 bg-white border border-slate-200 rounded-xl text-blue-950 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
@@ -73,19 +129,28 @@ export const PreSignupScreen: React.FC<PreSignupScreenProps> = ({ onClose }) => 
                   id="email"
                   type="email"
                   placeholder="john@example.com"
-                  className="w-full h-12 pl-12 pr-4 bg-white border border-slate-200 rounded-xl text-blue-950 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-transparent"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={isSubmitting}
+                  className="w-full h-12 pl-12 pr-4 bg-white border border-slate-200 rounded-xl text-blue-950 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
 
             <button 
               type="submit"
-              className="w-full h-12 px-6 py-3 bg-emerald-300 rounded-3xl flex justify-center items-center gap-2 shadow-[0px_4px_12px_rgba(102,255,184,0.3)] hover:shadow-[0px_6px_16px_rgba(102,255,184,0.4)] transition-shadow"
+              disabled={isSubmitting}
+              className="w-full h-12 px-6 py-3 bg-emerald-300 rounded-3xl flex justify-center items-center gap-2 shadow-[0px_4px_12px_rgba(102,255,184,0.3)] hover:shadow-[0px_6px_16px_rgba(102,255,184,0.4)] transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span className="text-blue-950 text-sm font-medium leading-5">Create Account</span>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4.16675 10H15.8334M15.8334 10L10.0001 4.16669M15.8334 10L10.0001 15.8334" stroke="#26275A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <span className="text-blue-950 text-sm font-medium leading-5">
+                {isSubmitting ? 'Creating Account...' : 'Create Account'}
+              </span>
+              {!isSubmitting && (
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4.16675 10H15.8334M15.8334 10L10.0001 4.16669M15.8334 10L10.0001 15.8334" stroke="#26275A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
             </button>
 
             <p className="text-center text-slate-500 text-xs leading-4">

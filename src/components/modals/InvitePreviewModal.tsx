@@ -4,8 +4,9 @@ import {
   DialogContent,
 } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CalendarIcon, MapPinIcon, SunIcon, ClockIcon, ChevronDownIcon, XIcon } from '@/components/icons';
+import { ClockIcon, ChevronDownIcon, XIcon } from '@/components/icons';
 import { GuestListModal } from './GuestListModal';
+import { PartyCard } from '@/components/PartyCard';
 
 interface InvitePreviewModalProps {
   open: boolean;
@@ -88,33 +89,7 @@ export const InvitePreviewModal: React.FC<InvitePreviewModalProps> = ({
     }
   };
 
-  const formatTime = (timeString: string): string => {
-    if (!timeString) return '';
-
-    try {
-      if (timeString.toLowerCase().includes('am') || timeString.toLowerCase().includes('pm')) {
-        return timeString.toLowerCase();
-      }
-
-      const [hours, minutes] = timeString.split(':');
-      if (!hours || !minutes) return timeString;
-
-      const hour = parseInt(hours, 10);
-      if (isNaN(hour)) return timeString;
-
-      const ampm = hour >= 12 ? 'pm' : 'am';
-      const displayHour = hour % 12 || 12;
-      return `${displayHour}:${minutes} ${ampm}`;
-    } catch {
-      return timeString;
-    }
-  };
-
-  const sampleGuests = [
-    { initials: 'AT' },
-    { initials: 'HA' },
-    { initials: 'LM' },
-  ];
+  const sampleGuestInitials = ['AT', 'HA', 'LM'];
 
   return (
     <Dialog open={open} onOpenChange={onClose} modal={true}>
@@ -147,64 +122,18 @@ export const InvitePreviewModal: React.FC<InvitePreviewModalProps> = ({
 
           {/* Create Event Section */}
           <div className="self-stretch flex flex-col justify-start items-start gap-4">
-            {/* Card */}
-            <div 
-              className="self-stretch h-72 p-4 rounded-3xl shadow-[0px_0px_37.85714340209961px_-4.7142863273620605px_rgba(38,39,90,1.00)] flex flex-col justify-between items-end overflow-hidden relative"
-            >
-              {/* Background Image */}
-              <img 
-                src={party.cover_image_url || '/party-background.png'} 
-                alt="Party background"
-                className="absolute inset-0 w-full h-full object-cover -z-10"
-              />
-              {/* Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-b from-black/0 to-blue-950/75 -z-[5]" />
-              
-              {/* Header */}
-              <div className="self-stretch flex justify-between items-center z-10">
-                <div className="flex-1 flex justify-start items-center gap-2.5">
-                  <div className="text-center text-white text-lg font-medium font-['Outfit'] leading-7">
-                    You're Invited
-                  </div>
-                </div>
-                <div className="flex justify-end items-center">
-                  {sampleGuests.map((guest, index) => (
-                    <div key={index} className="size-8 bg-emerald-300 rounded-full shadow-md outline outline-2 outline-offset-[-2px] outline-white flex justify-center items-center">
-                      <div className="text-blue-950 text-xs font-bold font-['Inter'] leading-5">
-                        {guest.initials}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Party Details */}
-              <div className="self-stretch p-3 bg-white/0 rounded-2xl backdrop-blur-md flex flex-col justify-start items-start gap-2 z-10">
-                <div className="self-stretch flex justify-start items-center gap-2.5">
-                  <div className="flex-1 text-white text-3xl font-medium font-['Outfit'] leading-9">
-                    {party.party_name}
-                  </div>
-                </div>
-                <div className="self-stretch h-6 flex justify-start items-center gap-2">
-                  <CalendarIcon />
-                  <div className="flex-1 text-gray-200 text-base font-normal font-['Inter'] leading-6">
-                    {formatDate(party.event_date)}, {formatTime(party.start_time)}
-                  </div>
-                </div>
-                <div className="self-stretch h-6 flex justify-start items-center gap-2">
-                  <MapPinIcon />
-                  <div className="flex-1 text-gray-200 text-base font-normal font-['Inter'] leading-6">
-                    {party.location}
-                  </div>
-                  <div className="flex justify-start items-center gap-2">
-                    <SunIcon />
-                    <div className="text-gray-200 text-xs font-normal font-['Inter'] leading-6">
-                      {party.temperature || '31'}˚
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* Party Card */}
+            <PartyCard
+              partyName={party.party_name}
+              eventDate={party.event_date}
+              startTime={party.start_time}
+              location={party.location}
+              temperature={party.temperature}
+              coverImageUrl={party.cover_image_url}
+              showInviteHeader={true}
+              guestInitials={sampleGuestInitials}
+              className="self-stretch"
+            />
 
             {/* Container Section */}
             <div className="self-stretch flex flex-col justify-start items-start gap-4">

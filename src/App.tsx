@@ -5,8 +5,8 @@ import { ModalProvider } from './contexts/ModalContext';
 import { HomeScreen } from './screens/HomeScreen';
 import { PartyFormScreen } from './screens/PartyFormScreen';
 import { GuestListScreen } from './screens/GuestListScreen';
-import { PublicInviteView } from './screens/PublicInviteView';
 import { AccountScreen } from './screens/AccountScreen';
+import { InviteDetailScreen } from './screens/InviteDetailScreen';
 
 function App() {
   return (
@@ -19,7 +19,7 @@ function App() {
               <Route path="/create" element={<PartyFormScreen />} />
               <Route path="/account" element={<AccountScreen />} />
               <Route path="/guests" element={<GuestListScreen />} />
-              <Route path="/i/:inviteCode" element={<PublicInviteView />} />
+              <Route path="/i/:inviteCode" element={<InviteDetailScreen />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </ModalProvider>

@@ -11,9 +11,10 @@ interface AddGuestModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (guests: Guest[]) => void;
+  existingGuests?: Array<{ id?: string; name: string; dietary?: string; type?: 'adult' | 'child' }>;
 }
 
-export const AddGuestModal: React.FC<AddGuestModalProps> = ({ isOpen, onClose, onSave }) => {
+export const AddGuestModal: React.FC<AddGuestModalProps> = ({ isOpen, onClose, onSave, existingGuests = [] }) => {
   const [guests, setGuests] = useState<Guest[]>([
     { name: '', type: 'adult', dietary: '' },
   ]);
@@ -22,8 +23,18 @@ export const AddGuestModal: React.FC<AddGuestModalProps> = ({ isOpen, onClose, o
   useEffect(() => {
     if (isOpen) {
       setIsAnimating(true);
+      // Load existing guests or start with empty form
+      if (existingGuests.length > 0) {
+        setGuests(existingGuests.map(g => ({
+          name: g.name,
+          type: g.type || 'adult',
+          dietary: g.dietary || ''
+        })));
+      } else {
+        setGuests([{ name: '', type: 'adult', dietary: '' }]);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, existingGuests]);
 
   const handleClose = () => {
     setIsAnimating(false);
@@ -75,7 +86,7 @@ export const AddGuestModal: React.FC<AddGuestModalProps> = ({ isOpen, onClose, o
       onClick={handleClose}
     >
       <div
-        className={`w-96 max-w-full px-4 pt-8 pb-16 bg-white rounded-t-3xl shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10)] shadow-lg outline outline-1 outline-offset-[-1px] outline-blue-950/10 flex flex-col justify-center items-start gap-5 transition-transform duration-300 ease-out ${
+        className={`w-full max-w-full px-4 pt-8 pb-16 bg-white rounded-t-3xl shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10)] shadow-lg outline outline-1 outline-offset-[-1px] outline-blue-950/10 flex flex-col justify-center items-start gap-5 transition-transform duration-300 ease-out ${
           isAnimating ? 'translate-y-0' : 'translate-y-full'
         }`}
         onClick={(e) => e.stopPropagation()}

@@ -54,7 +54,7 @@ export const ShareSheetModal: React.FC<ShareSheetModalProps> = ({ isOpen, onClos
 
         <div className="relative">
           <img
-            src="/image copy copy copy copy copy copy.png"
+            src="/Activity View - iPhone.png"
             alt="iOS Share Sheet"
             className="w-full h-auto"
           />
