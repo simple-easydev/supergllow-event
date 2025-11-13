@@ -263,7 +263,7 @@ export const HomeScreen: React.FC = () => {
               {isCheckingAuth ? 'Loading...' : userEmail || 'Sign in to continue'}
             </span>
             <div
-              onClick={() => userEmail ? navigate('/account-detail') : setIsPreSignupOpen(true)}
+              onClick={() => setIsPreSignupOpen(true)}
               role="button"
               tabIndex={0}
               style={{
