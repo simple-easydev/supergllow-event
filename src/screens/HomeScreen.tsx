@@ -245,6 +245,7 @@ export const HomeScreen: React.FC = () => {
             }}
           >
             <span
+              onClick={() => userEmail && navigate('/account-detail')}
               style={{
                 fontFamily: 'Inter',
                 fontStyle: 'normal',
@@ -255,13 +256,14 @@ export const HomeScreen: React.FC = () => {
                 flexShrink: 1,
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
+                whiteSpace: 'nowrap',
+                cursor: userEmail ? 'pointer' : 'default'
               }}
             >
               {isCheckingAuth ? 'Loading...' : userEmail || 'Sign in to continue'}
             </span>
             <div
-              onClick={() => setIsPreSignupOpen(true)}
+              onClick={() => userEmail ? navigate('/account-detail') : setIsPreSignupOpen(true)}
               role="button"
               tabIndex={0}
               style={{
@@ -272,7 +274,7 @@ export const HomeScreen: React.FC = () => {
                 cursor: 'pointer',
                 marginLeft: '4px'
               }}
-              aria-label="Open signup dialog"
+              aria-label={userEmail ? "Go to account details" : "Open signup dialog"}
             >
               <EditIcon />
             </div>

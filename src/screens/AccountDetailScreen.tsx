@@ -230,6 +230,7 @@ export const AccountDetailScreen: React.FC = () => {
         </div>
 
         <button
+          onClick={() => navigate('/create')}
           style={{
             background: 'transparent',
             border: 'none',
@@ -238,6 +239,7 @@ export const AccountDetailScreen: React.FC = () => {
             display: 'flex',
             alignItems: 'center'
           }}
+          aria-label="Create new party"
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M12 5V19M5 12H19" stroke="#26275A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -251,8 +253,7 @@ export const AccountDetailScreen: React.FC = () => {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          padding: '0px 16px 16px',
-          gap: '16px',
+          padding: '0px 0px 16px',
           width: '100%',
           flex: 1,
           overflow: 'auto'
@@ -274,18 +275,51 @@ export const AccountDetailScreen: React.FC = () => {
           Superglow
         </h1>
 
-        <div style={{ marginTop: '12px', width: '100%', cursor: 'pointer' }} onClick={() => navigate('/party/1')}>
-          <PartyCard
-            partyName="Sam's Superhero Party"
-            eventDate="06/14/2025"
-            startTime="1:00 PM"
-            location="Riverside Park"
-            temperature="22"
-            coverImageUrl="/party-background.png"
-            showHostLabel={true}
-            guestInitials={['AT', 'HA', 'LM']}
-            height="h-[480px]"
-          />
+        <div style={{ width: '100%', marginTop: '12px', overflow: 'visible' }}>
+          <div style={{ overflowX: 'scroll', overflowY: 'visible', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }} className="[&::-webkit-scrollbar]:hidden">
+            <div style={{ display: 'flex', gap: '16px', padding: '40px 16px 32px' }}>
+              <div style={{ cursor: 'pointer', flexShrink: 0, width: 'calc(100vw - 32px)' }} onClick={() => navigate('/party/1')}>
+                <PartyCard
+                  partyName="Sam's Superhero Party"
+                  eventDate="06/14/2025"
+                  startTime="1:00 PM"
+                  location="Riverside Park"
+                  temperature="22"
+                  coverImageUrl="/party-background.png"
+                  showHostLabel={true}
+                  guestInitials={['AT', 'HA', 'LM']}
+                  height="h-[480px]"
+                />
+              </div>
+              <div style={{ cursor: 'pointer', flexShrink: 0, width: 'calc(100vw - 32px)' }} onClick={() => navigate('/party/1')}>
+                <PartyCard
+                  partyName="Sam's Superhero Party"
+                  eventDate="06/14/2025"
+                  startTime="1:00 PM"
+                  location="Riverside Park"
+                  temperature="22"
+                  coverImageUrl="/party-background.png"
+                  showHostLabel={true}
+                  guestInitials={['AT', 'HA', 'LM']}
+                  height="h-[480px]"
+                />
+              </div>
+              <div style={{ cursor: 'pointer', flexShrink: 0, width: 'calc(100vw - 32px)' }} onClick={() => navigate('/party/1')}>
+                <PartyCard
+                  partyName="Sam's Superhero Party"
+                  eventDate="06/14/2025"
+                  startTime="1:00 PM"
+                  location="Riverside Park"
+                  temperature="22"
+                  coverImageUrl="/party-background.png"
+                  showHostLabel={true}
+                  guestInitials={['AT', 'HA', 'LM']}
+                  height="h-[480px]"
+                />
+              </div>
+              <div style={{ width: '8px', flexShrink: 0 }} />
+            </div>
+          </div>
         </div>
 
         <p

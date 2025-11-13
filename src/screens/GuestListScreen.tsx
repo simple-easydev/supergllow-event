@@ -128,14 +128,14 @@ export const GuestListScreen: React.FC = () => {
     setShareStatus('idle');
 
     try {
-      // Get user from localStorage (created during signup)
-      const userStr = localStorage.getItem('superglow_user');
-      if (!userStr) {
-        alert('Please sign up first');
+      // Get authenticated user from Supabase
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        alert('Please sign in first');
         navigate('/');
         return;
       }
-      const user = JSON.parse(userStr);
 
       // Generate unique invite code
       const inviteCode = generateInviteCode();

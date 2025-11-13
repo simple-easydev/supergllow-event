@@ -14,6 +14,7 @@ import { BackgroundModal } from '@/components/modals/BackgroundModal';
 import { InvitePreviewModal } from '@/components/modals/InvitePreviewModal';
 import { CalendarIcon, ImageUploadIcon, LocationPinIcon } from '@/components/icons';
 import { useParty } from '@/contexts';
+import { format } from "date-fns"
 
 interface Theme {
   id: string;
@@ -118,7 +119,7 @@ export const PartyFormScreen: React.FC = () => {
   
   const formatDateForSave = (date: Date | undefined): string => {
     if (!date) return '';
-    return `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear()}`;
+    return format(date, 'yyyy-MM-dd')
   };
   const isThemeSelected = selectedTheme !== null;
   const isVideoAdded = videoUrl.trim().length > 0;
