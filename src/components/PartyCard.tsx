@@ -1,6 +1,16 @@
 import React from 'react';
 import { CalendarIcon, MapPinIcon, SunIcon } from '@/components/icons';
 
+interface Guest {
+  name: string;
+  id?: string;
+  email?: string;
+  phone?: string;
+  rsvp_status?: string;
+  dietary_restrictions?: string;
+  guest_type?: string;
+}
+
 interface PartyCardProps {
   partyName: string;
   eventDate: string;
@@ -9,7 +19,7 @@ interface PartyCardProps {
   temperature?: string;
   coverImageUrl?: string;
   showInviteHeader?: boolean;
-  guestInitials?: string[];
+  guests?: Guest[];
   showHostLabel?: boolean;
   className?: string;
   height?: string;
@@ -24,12 +34,22 @@ export const PartyCard: React.FC<PartyCardProps> = ({
   temperature = '31',
   coverImageUrl = '/party-background.png',
   showInviteHeader = false,
-  guestInitials = [],
+  guests = [],
   showHostLabel = false,
   className = '',
   height = 'h-72',
   actionButtons,
 }) => {
+  // Generate guest initials from the first 3 guests
+  const guestInitials = guests
+    .slice(0, 3)
+    .map(guest => {
+      const names = guest.name.trim().split(' ');
+      if (names.length >= 2) {
+        return (names[0][0] + names[names.length - 1][0]).toUpperCase();
+      }
+      return guest.name.substring(0, 2).toUpperCase();
+    });
   const formatDate = (dateString: string): string => {
     if (!dateString) return '';
 
@@ -104,7 +124,7 @@ export const PartyCard: React.FC<PartyCardProps> = ({
             </div>
             {guestInitials.length > 0 && (
               <div className="flex justify-end items-center">
-                {guestInitials.map((initials, index) => (
+                {guestInitials.map((initials: string, index: number) => (
                   <div key={index} className="size-8 bg-emerald-300 rounded-full shadow-md outline outline-2 outline-offset-[-2px] outline-white flex justify-center items-center">
                     <div className="text-blue-950 text-xs font-bold font-['Inter'] leading-5">
                       {initials}
@@ -123,7 +143,7 @@ export const PartyCard: React.FC<PartyCardProps> = ({
             </div>
             {guestInitials.length > 0 && (
               <div className="flex justify-end items-center -space-x-2">
-                {guestInitials.map((initials, index) => (
+                {guestInitials.map((initials: string, index: number) => (
                   <div 
                     key={index} 
                     className="size-12 bg-emerald-300 rounded-full shadow-md outline outline-2 outline-white flex justify-center items-center"

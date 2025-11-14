@@ -1,11 +1,79 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { PartyCard } from '@/components/PartyCard';
 import { Switch } from '@/components/ui/switch';
+import { supabase, Party, Guest } from '@/lib/supabase';
 
 export const PartyTabContent: React.FC = () => {
+  const { partyId } = useParams<{ partyId: string }>();
+  const navigate = useNavigate();
+  const [party, setParty] = useState<Party | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [allowNonListed, setAllowNonListed] = useState(false);
   const [collectDietaries, setCollectDietaries] = useState(false);
   const [requireParentAttendance, setRequireParentAttendance] = useState(false);
+
+  useEffect(() => {
+    const fetchPartyDetail = async () => {
+      if (!partyId) {
+        console.error('No party ID provided');
+        navigate('/');
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('parties')
+          .select(`
+            *,
+            guests (
+              id,
+              name,
+              rsvp_status
+            )
+          `)
+          .eq('id', partyId)
+          .single();
+
+        if (error) {
+          console.error('Error fetching party:', error);
+          navigate('/');
+          return;
+        }
+
+        console.log('Fetched party detail:', data);
+        setParty(data);
+        setAllowNonListed(data.allow_non_listed_guests || false);
+        setCollectDietaries(data.collect_dietaries || false);
+        setIsLoading(false);
+      } catch (err) {
+        console.error('Error:', err);
+        navigate('/');
+      }
+    };
+
+    fetchPartyDetail();
+  }, [partyId, navigate]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <div className="text-white text-lg font-heading">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!party) {
+    return null;
+  }
+
+  // Calculate RSVP stats
+  const guests = (party.guests || []) as Guest[];
+  const goingCount = guests.filter(g => g.rsvp_status === 'going').length;
+  const maybeCount = guests.filter(g => g.rsvp_status === 'maybe').length;
+  const pendingCount = guests.filter(g => !g.rsvp_status || g.rsvp_status === 'pending').length;
+  const notGoingCount = guests.filter(g => g.rsvp_status === 'declined').length;
+
   return (
     <div className="flex flex-col gap-6">
       {/* Invitation Status Bar */}
@@ -14,7 +82,7 @@ export const PartyTabContent: React.FC = () => {
           {/* Going */}
           <div className="flex flex-col justify-center items-center gap-1">
             <div className="w-12 px-2.5 py-1 bg-emerald-300 rounded-full flex justify-center items-center">
-              <div className="text-blue-950 text-base font-semibold font-['Inter'] leading-5">2</div>
+              <div className="text-blue-950 text-base font-semibold font-['Inter'] leading-5">{goingCount}</div>
             </div>
             <div className="text-green-50 text-xs font-normal font-['Inter'] leading-5">Going</div>
           </div>
@@ -22,7 +90,7 @@ export const PartyTabContent: React.FC = () => {
           {/* Maybe */}
           <div className="flex flex-col justify-center items-center gap-1">
             <div className="w-12 px-2.5 py-1 bg-yellow-300 rounded-full flex justify-center items-center">
-              <div className="text-blue-950 text-base font-semibold font-['Inter'] leading-5">1</div>
+              <div className="text-blue-950 text-base font-semibold font-['Inter'] leading-5">{maybeCount}</div>
             </div>
             <div className="text-green-50 text-xs font-normal font-['Inter'] leading-5">Maybe</div>
           </div>
@@ -30,7 +98,7 @@ export const PartyTabContent: React.FC = () => {
           {/* Pending */}
           <div className="flex flex-col justify-center items-center gap-1">
             <div className="w-12 px-2.5 py-1 bg-white rounded-full flex justify-center items-center">
-              <div className="text-blue-950 text-base font-semibold font-['Inter'] leading-5">17</div>
+              <div className="text-blue-950 text-base font-semibold font-['Inter'] leading-5">{pendingCount}</div>
             </div>
             <div className="text-green-50 text-xs font-normal font-['Inter'] leading-5">Pending</div>
           </div>
@@ -38,7 +106,7 @@ export const PartyTabContent: React.FC = () => {
           {/* Not going */}
           <div className="flex flex-col justify-center items-center gap-1">
             <div className="w-12 px-2.5 py-1 bg-rose-300 rounded-full flex justify-center items-center">
-              <div className="text-blue-950 text-base font-semibold font-['Inter'] leading-5">2</div>
+              <div className="text-blue-950 text-base font-semibold font-['Inter'] leading-5">{notGoingCount}</div>
             </div>
             <div className="text-green-50 text-xs font-normal font-['Inter'] leading-5">Not going</div>
           </div>
@@ -47,12 +115,13 @@ export const PartyTabContent: React.FC = () => {
 
       {/* Party Card */}
       <PartyCard
-        partyName="Sam's Superhero Party"
-        eventDate="06/14/2025"
-        startTime="1:00 PM"
-        location="Riverside Park"
-        temperature="22"
-        coverImageUrl="/party-background.png"
+        partyName={party.party_name}
+        eventDate={party.event_date}
+        startTime={party.start_time}
+        location={party.location}
+        temperature={party.temperature || '22'}
+        coverImageUrl={party.cover_image_url || '/party-background.png'}
+        guests={party.guests || []}
         actionButtons={
           <>
             {/* Edit Button */}

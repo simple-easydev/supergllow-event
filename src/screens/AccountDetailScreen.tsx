@@ -28,17 +28,23 @@ export const AccountDetailScreen: React.FC = () => {
         console.log('User metadata:', session.user.user_metadata);
         console.log('==========================');
         
-        // Fetch user's parties
+        // Fetch user's parties with guests
         const { data: partiesData, error: partiesError } = await supabase
           .from('parties')
-          .select('*')
+          .select(`
+            *,
+            guests (
+              id,
+              name
+            )
+          `)
           .eq('user_id', session.user.id)
           .order('event_date', { ascending: true });
 
         if (partiesError) {
           console.error('Error fetching parties:', partiesError);
         } else {
-          console.log('Fetched parties:', partiesData);
+          console.log('Fetched parties with guests:', partiesData);
           setParties(partiesData || []);
         }
         
@@ -304,7 +310,7 @@ export const AccountDetailScreen: React.FC = () => {
                       temperature={party.temperature || '22'}
                       coverImageUrl={party.cover_image_url || '/party-background.png'}
                       showHostLabel={true}
-                      guestInitials={[]}
+                      guests={party.guests || []}
                       height="h-[480px]"
                     />
                   </div>
