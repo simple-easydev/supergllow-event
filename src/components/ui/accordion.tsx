@@ -13,11 +13,12 @@ const AccordionContext = createContext<AccordionContextValue | undefined>(undefi
 interface AccordionProps {
   children: React.ReactNode;
   className?: string;
+  defaultValue?: string[];
 }
 
-export const Accordion: React.FC<AccordionProps> = ({ children, className }) => {
-  const [openItems, setOpenItems] = useState<string[]>([]);
-  const [openedItems, setOpenedItems] = useState<string[]>([]);
+export const Accordion: React.FC<AccordionProps> = ({ children, className, defaultValue = [] }) => {
+  const [openItems, setOpenItems] = useState<string[]>(defaultValue);
+  const [openedItems, setOpenedItems] = useState<string[]>(defaultValue);
 
   const toggleItem = (value: string) => {
     setOpenItems((prev) =>

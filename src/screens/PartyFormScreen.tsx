@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Calendar, Music, Video, HeartHandshake, ArrowRight, Plus, X, Camera, Clock, MapPin, Info } from 'lucide-react';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { FormInput } from '@/components/ui/form-input';
 import { FormTextarea } from '@/components/ui/form-textarea';
 import { Button } from '@/components/ui/button';
+import { PrimaryButton } from '@/components/ui/primary-button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
@@ -14,6 +15,7 @@ import { BackgroundModal } from '@/components/modals/BackgroundModal';
 import { InvitePreviewModal } from '@/components/modals/InvitePreviewModal';
 import { CalendarIcon, ImageUploadIcon, LocationPinIcon } from '@/components/icons';
 import { useParty } from '@/contexts';
+import { supabase } from '@/lib/supabase';
 import { format } from "date-fns"
 
 interface Theme {
@@ -37,7 +39,9 @@ const themes: Theme[] = [
 
 export const PartyFormScreen: React.FC = () => {
   const navigate = useNavigate();
+  const { partyId } = useParams<{ partyId: string }>();
   const { updateParty } = useParty();
+  const isEditMode = Boolean(partyId);
 
   const [partyName, setPartyName] = useState('');
   const [childName, setChildName] = useState('');
@@ -70,6 +74,55 @@ export const PartyFormScreen: React.FC = () => {
   const [isBackgroundModalOpen, setIsBackgroundModalOpen] = useState(false);
   const [selectedBackground, setSelectedBackground] = useState<any>(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+
+  // Fetch party data in edit mode
+  useEffect(() => {
+    const fetchPartyData = async () => {
+      if (!isEditMode || !partyId) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('parties')
+          .select('*')
+          .eq('id', partyId)
+          .single();
+
+        if (error) {
+          console.error('Error fetching party:', error);
+          navigate('/');
+          return;
+        }
+
+        if (data) {
+          // Populate all fields with existing party data
+          setPartyName(data.party_name || '');
+          setChildName(data.child_name || '');
+          if (data.child_dob) setDob(new Date(data.child_dob));
+          
+          if (data.event_date) setEventDate(new Date(data.event_date));
+          setStartTime(data.start_time || '');
+          setEndTime(data.end_time || '');
+          setLocation(data.location || '');
+          setDescription(data.description || '');
+          setTemperature(data.temperature || '');
+          if (data.rsvp_deadline) setRsvpDeadline(new Date(data.rsvp_deadline));
+          
+          if (data.theme_id) {
+            const theme = themes.find(t => t.id === data.theme_id);
+            if (theme) setSelectedTheme(theme);
+          }
+          
+          setVideoUrl(data.video_url || '');
+          setGiftIdeas(data.gift_ideas || []);
+        }
+      } catch (err) {
+        console.error('Error:', err);
+        navigate('/');
+      }
+    };
+
+    fetchPartyData();
+  }, [isEditMode, partyId, navigate]);
 
   const validateDate = (dateStr: string): boolean => {
     if (!dateStr) return true; // Empty is OK while typing
@@ -136,13 +189,118 @@ export const PartyFormScreen: React.FC = () => {
     setGiftIdeas(giftIdeas.filter((_, i) => i !== index));
   };
 
-  const canContinue = partyName.trim() && 
+  const canContinue = isEditMode || (
+    partyName.trim() && 
     childName.trim() && 
     isEventDetailsComplete && 
     !errors.location && 
     !errors.rsvpDeadline &&
     validateTime(startTime) &&
-    validateLocation(location);
+    validateLocation(location)
+  );
+
+  const handleSaveUpdate = async () => {
+    if (!canContinue || !partyId) return;
+
+    try {
+      const { error } = await supabase
+        .from('parties')
+        .update({
+          event_date: formatDateForSave(eventDate),
+          start_time: startTime,
+          end_time: endTime,
+          location: location,
+          description: description,
+          temperature: temperature,
+          rsvp_deadline: formatDateForSave(rsvpDeadline),
+          theme_id: selectedTheme?.id,
+          theme_name: selectedTheme?.name,
+          theme_bg_color: selectedTheme?.bgColor,
+          video_url: videoUrl,
+          gift_ideas: giftIdeas,
+        })
+        .eq('id', partyId);
+
+      if (error) {
+        console.error('Error updating party:', error);
+        return;
+      }
+
+      // Navigate back to party detail
+      navigate(`/party/${partyId}`);
+    } catch (err) {
+      console.error('Error:', err);
+    }
+  };
+
+  const handleCreateParty = async () => {
+    if (!canContinue) return;
+
+    try {
+      // Get authenticated user from Supabase
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        alert('Please sign in first');
+        navigate('/');
+        return;
+      }
+
+      // Generate unique invite code
+      const generateInviteCode = (): string => {
+        return Math.random().toString(36).substring(2, 15);
+      };
+
+      const inviteCode = generateInviteCode();
+      const inviteLink = `${window.location.origin}/i/${inviteCode}`;
+
+      // Prepare party data for database
+      const partyData = {
+        user_id: user.id,
+        party_name: partyName,
+        child_name: childName,
+        child_dob: formatDateForSave(dob),
+        event_date: formatDateForSave(eventDate),
+        start_time: startTime,
+        end_time: endTime,
+        location: location,
+        description: description,
+        temperature: temperature || '31',
+        video_url: videoUrl,
+        theme_id: selectedTheme?.id,
+        theme_name: selectedTheme?.name,
+        theme_bg_color: selectedTheme?.bgColor,
+        allow_non_listed_guests: true,
+        collect_dietaries: true,
+        rsvp_deadline: formatDateForSave(rsvpDeadline),
+        invite_code: inviteCode,
+        invite_link: inviteLink,
+        gift_ideas: giftIdeas,
+      };
+
+      // Create party in Supabase
+      const { data: createdParty, error: partyError } = await supabase
+        .from('parties')
+        .insert([partyData])
+        .select()
+        .single();
+
+      if (partyError) {
+        console.error('Error creating party:', partyError);
+        alert('Failed to create party. Please try again.');
+        return;
+      }
+
+      // Update party context with the created party data
+      updateParty(createdParty);
+
+      // Navigate to guest list with party ID
+      navigate(`/guests/${createdParty.id}`);
+    } catch (err) {
+      console.error('Error:', err);
+      alert('An unexpected error occurred. Please try again.');
+    }
+  };
 
   return (
     <div
@@ -155,7 +313,9 @@ export const PartyFormScreen: React.FC = () => {
         position: 'relative',
         width: '100%',
         height: '100vh',
-        background: 'linear-gradient(180deg, #66FFB8 0%, #26275A 100%), #FFFFFF',
+        background: isEditMode 
+          ? 'linear-gradient(180deg, #BA7A60 0%, #26275A 100%)' 
+          : 'linear-gradient(180deg, #66FFB8 0%, #26275A 100%), #FFFFFF',
         borderRadius: '0px'
       }}
     >
@@ -236,6 +396,7 @@ export const PartyFormScreen: React.FC = () => {
             type="text"
             value={partyName}
             onChange={(e) => setPartyName(e.target.value)}
+            disabled={isEditMode}
             placeholder="Party Name*"
             style={{
               width: '100%',
@@ -246,7 +407,8 @@ export const PartyFormScreen: React.FC = () => {
               fontFamily: 'Inter, sans-serif',
               fontWeight: 600,
               fontSize: '24px',
-              color: '#26275A'
+              color: isEditMode ? '#26275A80' : '#26275A',
+              cursor: isEditMode ? 'not-allowed' : 'text'
             }}
           />
 
@@ -263,6 +425,7 @@ export const PartyFormScreen: React.FC = () => {
               type="text"
               value={childName}
               onChange={(e) => setChildName(e.target.value)}
+              disabled={isEditMode}
               placeholder="Child's Name*"
               style={{
                 flex: 1,
@@ -274,10 +437,11 @@ export const PartyFormScreen: React.FC = () => {
                 fontFamily: 'Inter, sans-serif',
                 fontWeight: 500,
                 fontSize: '18px',
-                color: '#26275A',
+                color: isEditMode ? '#26275A80' : '#26275A',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
+                whiteSpace: 'nowrap',
+                cursor: isEditMode ? 'not-allowed' : 'text'
               }}
             />
 
@@ -286,11 +450,15 @@ export const PartyFormScreen: React.FC = () => {
               onDateChange={setDob}
               placeholder=""
               inline={true}
+              disabled={isEditMode}
             />
           </div>
         </div>
 
-        <Accordion className="w-full">
+        <Accordion 
+          className="w-full" 
+          defaultValue={isEditMode ? ['event-details', 'party-theme', 'video-invite', 'wishlist'] : []}
+        >
           <AccordionItem value="event-details" completed={isEventDetailsComplete}>
             <AccordionTrigger
               value="event-details"
@@ -777,51 +945,19 @@ export const PartyFormScreen: React.FC = () => {
           </AccordionItem>
         </Accordion>
 
-        <button
-          onClick={() => {
-            if (!canContinue) return;
-            // Save party data to context before navigating
-            updateParty({
-              party_name: partyName,
-              child_name: childName,
-              event_date: formatDateForSave(eventDate),
-              start_time: startTime,
-              end_time: endTime,
-              location: location,
-              description: description,
-              rsvp_deadline: formatDateForSave(rsvpDeadline),
-              allow_non_listed_guests: true,
-              collect_dietaries: true,
-            });
-            navigate('/guests');
-          }}
-          disabled={!canContinue}
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: '8px 24px',
-            gap: '10px',
-            width: '100%',
-            height: '40px',
-            minHeight: '40px',
-            background: canContinue ? '#66FFB8' : '#CBD5E0',
-            borderRadius: '24px',
-            border: 'none',
-            cursor: canContinue ? 'pointer' : 'not-allowed',
-            fontFamily: 'Inter',
-            fontStyle: 'normal',
-            fontWeight: 500,
-            fontSize: '14px',
-            lineHeight: '20px',
-            color: canContinue ? '#26275A' : '#64748B',
-            opacity: canContinue ? 1 : 0.6
-          }}
-        >
-          Continue to Invite Guests
-          <ArrowRight size={16} color={canContinue ? '#26275A' : '#64748B'} strokeWidth={2} />
-        </button>
+        {isEditMode ? (
+          <PrimaryButton onClick={handleSaveUpdate}>
+            Save Update
+          </PrimaryButton>
+        ) : (
+          <PrimaryButton 
+            onClick={handleCreateParty}
+            disabled={!canContinue}
+            showArrow
+          >
+            Continue to Invite Guests
+          </PrimaryButton>
+        )}
         </div>
       </ScrollArea>
 

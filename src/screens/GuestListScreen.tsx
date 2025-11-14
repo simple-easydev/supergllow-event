@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useParty } from '../contexts/PartyContext';
 import { ArrowLeft, Plus, Calendar, MapPin, Sun, Share2, Info, Users, X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
@@ -18,6 +18,7 @@ interface GuestItem {
 
 export const GuestListScreen: React.FC = () => {
   const navigate = useNavigate();
+  const { partyId } = useParams<{ partyId: string }>();
   const { party, updateParty } = useParty();
 
   const [guests, setGuests] = useState<GuestItem[]>(party?.guests || []);
@@ -50,13 +51,54 @@ export const GuestListScreen: React.FC = () => {
     }
   };
 
-  const handleSaveGuests = (newGuests: Array<{ name: string; type: 'adult' | 'child'; dietary?: string }>) => {
-    const formattedGuests = newGuests.map(g => ({
+  const handleSaveGuests = async (updatedGuests: Array<{ name: string; type: 'adult' | 'child'; dietary?: string }>) => {
+    if (!partyId) return;
+
+    // Format the complete guest list
+    const formattedGuests = updatedGuests.map(g => ({
       name: g.name,
       dietary: g.dietary,
       type: g.type
     }));
-    setGuests([...guests, ...formattedGuests]);
+
+    try {
+      console.log("delete guest....")
+      // Step 1: Delete all existing guests for this party
+      const { error: deleteError } = await supabase
+        .from('guests')
+        .delete()
+        .eq('party_id', partyId);
+
+      if (deleteError) {
+        console.error('Error deleting existing guests:', deleteError);
+        return;
+      }
+
+      // Step 2: Insert the updated guest list
+      // if (formattedGuests.length > 0) {
+      //   const guestsData = formattedGuests.map(guest => ({
+      //     party_id: partyId,
+      //     name: guest.name,
+      //     dietary_restrictions: guest.dietary,
+      //     guest_type: guest.type,
+      //     rsvp_status: 'pending',
+      //   }));
+
+      //   const { error: insertError } = await supabase
+      //     .from('guests')
+      //     .insert(guestsData);
+
+      //   if (insertError) {
+      //     console.error('Error inserting guests:', insertError);
+      //     return;
+      //   }
+      // }
+
+      // Step 3: Update local state with the new guest list
+      setGuests(formattedGuests);
+    } catch (err) {
+      console.error('Error saving guests:', err);
+    }
   };
 
   const handleRemoveGuest = (index: number) => {
@@ -119,7 +161,7 @@ export const GuestListScreen: React.FC = () => {
   };
 
   const handleShareInvite = async () => {
-    if (!party) {
+    if (!party || !partyId) {
       alert('Please create a party first');
       return;
     }
@@ -128,84 +170,7 @@ export const GuestListScreen: React.FC = () => {
     setShareStatus('idle');
 
     try {
-      // Get authenticated user from Supabase
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError || !user) {
-        alert('Please sign in first');
-        navigate('/');
-        return;
-      }
-
-      // Generate unique invite code
-      const inviteCode = generateInviteCode();
-      const inviteLink = `${window.location.origin}/i/${inviteCode}`;
-
-      // Prepare party data for database
-      const partyData = {
-        user_id: user.id,
-        party_name: party.party_name || '',
-        child_name: party.child_name || '',
-        child_dob: party.child_dob || new Date().toISOString().split('T')[0],
-        event_date: party.event_date || new Date().toISOString().split('T')[0],
-        start_time: party.start_time,
-        end_time: party.end_time,
-        location: party.location || '',
-        description: party.description,
-        temperature: party.temperature,
-        cover_image_url: party.cover_image_url,
-        video_url: party.video_url,
-        theme_id: party.theme_id,
-        theme_name: party.theme_name,
-        theme_bg_color: party.theme_bg_color,
-        allow_non_listed_guests: allowNonListed,
-        collect_dietaries: collectDietaries,
-        rsvp_deadline: party.rsvp_deadline,
-        invite_code: inviteCode,
-        invite_link: inviteLink,
-        gift_ideas: party.gift_ideas || [],
-      };
-
-      // Create party in Supabase
-      const { data: createdParty, error: partyError } = await supabase
-        .from('parties')
-        .insert([partyData])
-        .select()
-        .single();
-
-      if (partyError) {
-        console.error('Error creating party:', partyError);
-        setShareStatus('error');
-        alert('Failed to create party. Please try again.');
-        setIsSharing(false);
-        return;
-      }
-
-      // Create guests in database
-      if (guests.length > 0 && createdParty) {
-        const guestsData = guests.map(guest => ({
-          party_id: createdParty.id,
-          name: guest.name,
-          dietary_restrictions: guest.dietary,
-          rsvp_status: 'pending',
-        }));
-
-        const { error: guestsError } = await supabase
-          .from('guests')
-          .insert(guestsData);
-
-        if (guestsError) {
-          console.error('Error creating guests:', guestsError);
-          // Don't fail the whole process if guests fail
-        }
-      }
-
-      // Update party context with the created party data including ID and invite link
-      updateParty({
-        ...createdParty,
-        guests: guests,
-      });
-
+      // Party already exists, just open share sheet
       setShareStatus('success');
       setIsSharing(false);
       setIsShareSheetModalOpen(true);

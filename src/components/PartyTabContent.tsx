@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PartyCard } from '@/components/PartyCard';
+import { GiftIdea } from '@/components/GiftIdea';
+import { AddGuestModal } from '@/components/modals/AddGuestModal';
+import { PlusIcon } from '@/components/icons';
 import { Switch } from '@/components/ui/switch';
 import { supabase, Party, Guest } from '@/lib/supabase';
 
@@ -12,6 +15,7 @@ export const PartyTabContent: React.FC = () => {
   const [allowNonListed, setAllowNonListed] = useState(false);
   const [collectDietaries, setCollectDietaries] = useState(false);
   const [requireParentAttendance, setRequireParentAttendance] = useState(false);
+  const [isAddGuestModalOpen, setIsAddGuestModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchPartyDetail = async () => {
@@ -74,6 +78,63 @@ export const PartyTabContent: React.FC = () => {
   const pendingCount = guests.filter(g => !g.rsvp_status || g.rsvp_status === 'pending').length;
   const notGoingCount = guests.filter(g => g.rsvp_status === 'declined').length;
 
+  const handleSaveGuests = async (newGuests: Array<{ name: string; type: 'adult' | 'child'; dietary?: string }>) => {
+    if (!party) return;
+
+    try {
+      // Step 1: Delete all existing guests for this party
+      const { error: deleteError } = await supabase
+        .from('guests')
+        .delete()
+        .eq('party_id', party.id);
+
+      if (deleteError) {
+        console.error('Error deleting existing guests:', deleteError);
+        return;
+      }
+
+      // Step 2: Insert complete guest list
+      const guestsToInsert = newGuests.map(guest => ({
+        party_id: party.id,
+        name: guest.name,
+        guest_type: guest.type,
+        dietary_restrictions: guest.dietary || null,
+        rsvp_status: 'pending'
+      }));
+
+      const { error } = await supabase
+        .from('guests')
+        .insert(guestsToInsert);
+
+      if (error) {
+        console.error('Error adding guests:', error);
+        return;
+      }
+
+      // Refresh party data to get updated guest list
+      const { data, error: fetchError } = await supabase
+        .from('parties')
+        .select(`
+          *,
+          guests (
+            id,
+            name,
+            rsvp_status
+          )
+        `)
+        .eq('id', party.id)
+        .single();
+
+      if (!fetchError && data) {
+        setParty(data);
+      }
+
+      setIsAddGuestModalOpen(false);
+    } catch (err) {
+      console.error('Error saving guests:', err);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
       {/* Invitation Status Bar */}
@@ -125,7 +186,10 @@ export const PartyTabContent: React.FC = () => {
         actionButtons={
           <>
             {/* Edit Button */}
-            <button className="size-8 bg-blue-950/50 rounded-full flex justify-center items-center backdrop-blur-sm">
+            <button 
+              onClick={() => navigate(`/edit/${partyId}`)}
+              className="size-8 bg-blue-950/50 rounded-full flex justify-center items-center backdrop-blur-sm"
+            >
               <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
                 <path d="M14.1667 2.50009C14.3856 2.28126 14.6454 2.10765 14.9314 1.98911C15.2173 1.87057 15.5238 1.80933 15.8334 1.80933C16.1429 1.80933 16.4494 1.87057 16.7353 1.98911C17.0213 2.10765 17.2811 2.28126 17.5 2.50009C17.7189 2.71892 17.8925 2.97871 18.011 3.26468C18.1295 3.55064 18.1908 3.85714 18.1908 4.16675C18.1908 4.47637 18.1295 4.78286 18.011 5.06883C17.8925 5.3548 17.7189 5.61458 17.5 5.83342L6.25002 17.0834L1.66669 18.3334L2.91669 13.7501L14.1667 2.50009Z" stroke="white" strokeWidth="1.66667" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
@@ -144,11 +208,11 @@ export const PartyTabContent: React.FC = () => {
       {/* Button Group */}
       <div className="w-full flex justify-center items-start gap-3">
         {/* Add Guests Button */}
-        <button className="flex-1 min-h-10 px-6 py-2 bg-gradient-to-b from-green-50 via-white to-blue-50 rounded-3xl flex justify-center items-center gap-2.5">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M3.33331 8H12.6666" stroke="#26275A" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M8 3.3335V12.6668" stroke="#26275A" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+        <button 
+          onClick={() => setIsAddGuestModalOpen(true)}
+          className="flex-1 min-h-10 px-6 py-2 bg-gradient-to-b from-green-50 via-white to-blue-50 rounded-3xl flex justify-center items-center gap-2.5"
+        >
+          <PlusIcon width="16" height="16" stroke="#26275A" />
           <div className="text-blue-950 text-sm font-medium font-['Inter'] leading-5">Add Guests</div>
         </button>
 
@@ -212,36 +276,32 @@ export const PartyTabContent: React.FC = () => {
           <div className="w-full flex justify-between items-center">
             <div className="text-green-50 text-base font-medium font-['Outfit'] leading-6">Gift Ideas</div>
             <button className="flex items-center justify-center">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M8.00004 3.3335V12.6668M3.33337 8.00016H12.6667" stroke="white" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M8.00004 3.3335V12.6668M3.33337 8.00016H12.6667" stroke="url(#paint0_linear_gift)" strokeLinecap="round" strokeLinejoin="round"/>
-                <defs>
-                  <linearGradient id="paint0_linear_gift" x1="8.00004" y1="3.3335" x2="8.00004" y2="12.6668" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#F0FDF4"/>
-                    <stop offset="0.5" stopColor="white"/>
-                    <stop offset="1" stopColor="#EFF6FF"/>
-                  </linearGradient>
-                </defs>
-              </svg>
+              <PlusIcon width="16" height="16" stroke="white" />
             </button>
           </div>
 
           {/* Gift Ideas Tags */}
-          <div className="w-full h-5 relative">
-            <div className="absolute left-0 top-0 px-2 py-0.5 bg-green-100 rounded-lg outline outline-1 outline-offset-[-1px] outline-emerald-300/20 flex justify-center items-center">
-              <div className="text-blue-950 text-xs font-medium font-['Inter'] leading-4">Building blocks</div>
+          {party.gift_ideas && party.gift_ideas.length > 0 ? (
+            <div className="w-full flex flex-wrap gap-2">
+              {party.gift_ideas.map((idea, index) => (
+                <GiftIdea key={index} idea={idea} />
+              ))}
             </div>
-            <div className="absolute left-[113px] top-0 px-2 py-0.5 bg-green-100 rounded-lg outline outline-1 outline-offset-[-1px] outline-emerald-300/20 flex justify-center items-center">
-              <div className="text-blue-950 text-xs font-medium font-['Inter'] leading-4">Picture books</div>
-            </div>
-            <div className="absolute left-[218px] top-0 px-2 py-0.5 bg-green-100 rounded-lg outline outline-1 outline-offset-[-1px] outline-emerald-300/20 flex justify-center items-center">
-              <div className="text-blue-950 text-xs font-medium font-['Inter'] leading-4">Art supplies</div>
-            </div>
-          </div>
+          ) : (
+            <div className="text-white/60 text-sm font-['Inter']">No gift ideas added yet</div>
+          )}
 
           
         </div>
       </div>
+
+      {/* Add Guest Modal */}
+      <AddGuestModal
+        isOpen={isAddGuestModalOpen}
+        onClose={() => setIsAddGuestModalOpen(false)}
+        onSave={handleSaveGuests}
+        existingGuests={guests}
+      />
     </div>
   );
 };

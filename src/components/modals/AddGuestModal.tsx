@@ -96,7 +96,6 @@ export const AddGuestModal: React.FC<AddGuestModalProps> = ({ isOpen, onClose, o
             onClick={handleClose}
             className="bg-transparent border-none cursor-pointer p-0 flex items-center gap-2"
           >
-            <div className="text-blue-950 text-base font-normal font-['Inter'] leading-6">Close</div>
             <div className="relative">
               <X size={16} color="#26275A" strokeWidth={1.33} />
             </div>

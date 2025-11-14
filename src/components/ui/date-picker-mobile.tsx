@@ -9,6 +9,7 @@ interface MobileDatePickerProps {
   className?: string
   label?: string
   inline?: boolean
+  disabled?: boolean
 }
 
 export function MobileDatePicker({
@@ -17,7 +18,8 @@ export function MobileDatePicker({
   placeholder = "MM/DD/YYYY",
   className,
   label,
-  inline = false
+  inline = false,
+  disabled = false
 }: MobileDatePickerProps) {
   const inputRef = React.useRef<HTMLInputElement>(null)
 
@@ -37,15 +39,16 @@ export function MobileDatePicker({
   if (inline) {
     return (
       <div
-        onClick={() => inputRef.current?.showPicker()}
+        onClick={() => !disabled && inputRef.current?.showPicker()}
         style={{
           display: 'inline-flex',
           alignItems: 'center',
           gap: '8px',
-          cursor: 'pointer',
+          cursor: disabled ? 'not-allowed' : 'pointer',
           background: 'transparent',
           maxWidth: 'fit-content',
-          flexShrink: 0
+          flexShrink: 0,
+          opacity: disabled ? 0.5 : 1
         }}
       >
         <span

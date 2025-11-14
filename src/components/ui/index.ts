@@ -2,6 +2,7 @@ export { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from './
 export { Avatar, AvatarImage, AvatarFallback } from './avatar'
 export { Badge, badgeVariants } from './badge'
 export { Button, buttonVariants } from './button'
+export { PrimaryButton } from './primary-button'
 export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent } from './card'
 export {
   Dialog,

@@ -17,8 +17,9 @@ function App() {
             <Routes>
               <Route path="/" element={<HomeScreen />} />
               <Route path="/create" element={<PartyFormScreen />} />
+              <Route path="/edit/:partyId" element={<PartyFormScreen />} />
               <Route path="/account-detail" element={<AccountDetailScreen />} />
-              <Route path="/guests" element={<GuestListScreen />} />
+              <Route path="/guests/:partyId" element={<GuestListScreen />} />
               <Route path="/party/:partyId" element={<PartyDetailScreen />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
